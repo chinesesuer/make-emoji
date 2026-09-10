@@ -1,5 +1,5 @@
 Page({
-  data: { currentStep: 0, steps: ['选身体','选表情','选挂件','贴文字','存表情'], categories: [[], [], []], categoryIndex: 0, selectedBody: -1, selectedExpression: -1, selectedAccessory: -1, bodies: [], expressions: [], accessories: [], body: '', expression: '', accessory: '', text: '', textInput: '', textStyle: 0, textColor: '#111111', textPosition: 'bottom', hotTexts: [], textBold: false, textStroke: true, activeLayer: '', bodyPosition: { x: 50, y: 50 }, expressionPosition: { x: 42, y: 56 }, accessoryPosition: { x: 62, y: 38 }, textPositionData: { x: 50, y: 86 }, bodyTransform: { scale: 1, rotate: 0, flip: false }, expressionTransform: { scale: 1, rotate: 0, flip: false }, accessoryTransform: { scale: 1, rotate: 0, flip: false }, textTransform: { scale: 1, rotate: 0, flip: false } },
+  data: { currentStep: 0, steps: ['选身体','选表情','选挂件','贴文字','存表情'], categories: [[], [], []], categoryIndex: 0, selectedBody: -1, selectedExpression: -1, selectedAccessory: -1, bodies: [], expressions: [], accessories: [], body: '', expression: '', accessory: '', text: '', textInput: '', textStyle: 0, textColor: '#111111', strokeColor: '#ffffff', textPosition: 'bottom', hotTexts: [], textBold: false, textStroke: true, activeLayer: '', bodyPosition: { x: 50, y: 50 }, expressionPosition: { x: 42, y: 56 }, accessoryPosition: { x: 62, y: 38 }, textPositionData: { x: 50, y: 84 }, bodyTransform: { scale: 1, rotate: 0, flip: false }, expressionTransform: { scale: 1, rotate: 0, flip: false }, accessoryTransform: { scale: 1, rotate: 0, flip: false }, textTransform: { scale: 1, rotate: 0, flip: false } },
   onLoad() {
     this.materialsByScene = { body: [], face: [], accessory: [] };
     this.localFileCache = {};
@@ -81,7 +81,8 @@ Page({
     const point = e.touches[0];
     this.createSelectorQuery().select('.canvas').boundingClientRect(rect => {
       if (!rect || version !== this.gestureVersion) return;
-      this.gesture = { mode: 'drag', layer, startX: point.clientX, startY: point.clientY, rect, position: { ...this.data[`${layer}Position`] }, moved: false };
+      const positionKey = layer === 'text' ? 'textPositionData' : `${layer}Position`;
+      this.gesture = { mode: 'drag', layer, positionKey, startX: point.clientX, startY: point.clientY, rect, position: { ...this.data[positionKey] }, moved: false };
       this.setData({ activeLayer: layer });
     }).exec();
   },
@@ -109,11 +110,11 @@ Page({
     }
     if (this.gesture.mode !== 'drag') return;
     const point = e.touches[0];
-    const { layer, startX, startY, rect, position } = this.gesture;
+    const { layer, positionKey, startX, startY, rect, position } = this.gesture;
     const x = Math.max(8, Math.min(92, position.x + (point.clientX - startX) / rect.width * 100));
     const y = Math.max(10, Math.min(90, position.y + (point.clientY - startY) / rect.height * 100));
     if (Math.abs(point.clientX - startX) > 5 || Math.abs(point.clientY - startY) > 5) this.gesture.moved = true;
-    this.setData({ [`${layer}Position`]: { x, y } });
+    this.setData({ [positionKey]: { x, y } });
   },
   endGesture() {
     if (this.gesture && this.gesture.mode === 'drag' && !this.gesture.moved) {
@@ -128,19 +129,19 @@ Page({
     const firstText = !this.data.text && !!value;
     const updates = { textInput: value, text: value, activeLayer: value ? 'text' : '' };
     if (firstText) {
-      updates.bodyTransform = { ...this.data.bodyTransform, scale: this.data.bodyTransform.scale * 0.6 };
-      updates.expressionTransform = { ...this.data.expressionTransform, scale: this.data.expressionTransform.scale * 0.6 };
-      updates.accessoryTransform = { ...this.data.accessoryTransform, scale: this.data.accessoryTransform.scale * 0.6 };
+      updates.bodyTransform = { ...this.data.bodyTransform, scale: this.data.bodyTransform.scale * 0.8 };
+      updates.expressionTransform = { ...this.data.expressionTransform, scale: this.data.expressionTransform.scale * 0.8 };
+      updates.accessoryTransform = { ...this.data.accessoryTransform, scale: this.data.accessoryTransform.scale * 0.8 };
     }
     this.setData(updates);
   },
   addText() {
     const firstText = !this.data.text;
-    const updates = { text: this.data.textInput, activeLayer: 'text', textPositionData: { x: 50, y: 86 }, textTransform: { scale: 1, rotate: 0, flip: false } };
+    const updates = { text: this.data.textInput, activeLayer: 'text', textPositionData: { x: 50, y: 84 }, textTransform: { scale: 1, rotate: 0, flip: false } };
     if (firstText) {
-      updates.bodyTransform = { ...this.data.bodyTransform, scale: this.data.bodyTransform.scale * 0.6 };
-      updates.expressionTransform = { ...this.data.expressionTransform, scale: this.data.expressionTransform.scale * 0.6 };
-      updates.accessoryTransform = { ...this.data.accessoryTransform, scale: this.data.accessoryTransform.scale * 0.6 };
+      updates.bodyTransform = { ...this.data.bodyTransform, scale: this.data.bodyTransform.scale * 0.8 };
+      updates.expressionTransform = { ...this.data.expressionTransform, scale: this.data.expressionTransform.scale * 0.8 };
+      updates.accessoryTransform = { ...this.data.accessoryTransform, scale: this.data.accessoryTransform.scale * 0.8 };
     }
     this.setData(updates);
   },
@@ -148,6 +149,7 @@ Page({
   toggleBold() { this.setData({ textBold: !this.data.textBold }); },
   toggleStroke() { this.setData({ textStroke: !this.data.textStroke }); },
   setTextColor(e) { this.setData({ textColor: e.currentTarget.dataset.color }); },
+  setStrokeColor(e) { this.setData({ strokeColor: e.currentTarget.dataset.color }); },
   chooseTextStyle(e) {this.setData({textStyle:e.currentTarget.dataset.index});}, chooseColor(e) {this.setData({textColor:e.currentTarget.dataset.color});}, choosePosition(e) {this.setData({textPosition:e.currentTarget.dataset.position});},
   goProfile() {wx.navigateTo({url:'/pages/profile/profile'});}, saveImage() {wx.showToast({title:'表情已保存',icon:'success'});}, saveToWarehouse() {wx.showToast({title:'已存入表情仓库',icon:'success'});}, share() {wx.showToast({title:'点击右上角分享给好友',icon:'none'});}
 });

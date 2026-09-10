@@ -1,0 +1,27 @@
+<view class="gif-page">
+  <view class="gif-header">
+    <view class="gif-nav">
+      <text class="gif-title">GIF工具</text>
+      <view class="nav-capsule"><text>•••</text><view class="nav-divider"/><view class="nav-circle"/></view>
+    </view>
+  </view>
+
+  <scroll-view class="gif-content" scroll-y="true">
+    <view class="tools-card">
+      <view class="tools-grid">
+        <view class="tool-item" wx:for="{{tools}}" wx:key="name" data-name="{{item.name}}" bindtap="openTool">
+          <view class="tool-icon-box"><image src="{{item.icon}}" mode="aspectFit"/></view>
+          <text>{{item.name}}</text>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <view class="gif-tabbar">
+    <view class="gif-tab" bindtap="goCreate">◆<text>制作表情</text></view>
+    <view class="gif-tab active">GIF<text>GIF工具</text></view>
+    <view class="gif-tab" bindtap="comingSoon">☻<text>表情仓库</text></view>
+    <view class="gif-tab" bindtap="comingSoon">▦<text>更多工具</text></view>
+    <view class="gif-tab" bindtap="goProfile">♟<text>个人中心</text></view>
+  </view>
+</view>

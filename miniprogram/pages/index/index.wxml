@@ -1,8 +1,7 @@
 <view class="page">
   <view class="hero">
     <view class="nav">
-      <view class="nav-title">DIY自制表情包</view>
-      <view class="nav-tools">•••　○</view>
+      <view class="nav-title">熊猫头表情包</view>
     </view>
     <view class="canvas-tip">单指：滑动元素　双指：缩放旋转　点击：水平翻转</view>
     <view class="canvas {{currentStep === 4 && (transparentBackground || saveSize !== 'large') ? 'canvas-transparent' : ''}}" bindtouchstart="startGesture" catchtouchmove="moveGesture" bindtouchend="endGesture">
@@ -80,7 +79,7 @@
 
   <view class="tabbar">
     <view class="tab active">◆<text>制作表情</text></view>
-    <view class="tab">GIF<text>GIF工具</text></view>
+    <view class="tab" bindtap="goGifTools">GIF<text>GIF工具</text></view>
     <view class="tab">☻<text>表情仓库</text></view>
     <view class="tab">▦<text>更多工具</text></view>
     <view class="tab" bindtap="goProfile">♟<text>个人中心</text></view>

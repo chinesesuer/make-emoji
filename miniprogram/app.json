@@ -1,7 +1,7 @@
 {
   "pages": [
     "pages/index/index",
-    "pages/example/index",
+    "pages/gifTools/gifTools",
     "pages/profile/profile",
     "pages/adminLogin/adminLogin",
     "pages/adminMaterials/adminMaterials"

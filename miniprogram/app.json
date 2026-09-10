@@ -3,6 +3,8 @@
     "pages/index/index",
     "pages/gifTools/gifTools",
     "pages/gifImages/gifImages",
+    "pages/gifVideo/gifVideo",
+    "pages/gifCrop/gifCrop",
     "pages/profile/profile",
     "pages/adminLogin/adminLogin",
     "pages/adminMaterials/adminMaterials"

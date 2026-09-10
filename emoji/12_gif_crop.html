@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>裁剪画面</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+<body class="bg-slate-200 min-h-screen flex items-center justify-center py-6 font-sans">
+
+<div class="relative bg-white rounded-[56px] border-[14px] border-black shadow-2xl overflow-hidden flex flex-col" style="width:430px;height:932px">
+
+  <!-- 顶部蓝色区 -->
+  <div class="bg-[#5B5FE9] shrink-0 pb-5">
+    <div class="flex items-center justify-between px-9 pt-4 pb-1 text-white">
+      <span class="text-[15px] font-semibold tracking-wide">9:41</span>
+      <div class="flex items-center gap-1.5 text-[13px]">
+        <i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-full text-[16px]"></i>
+      </div>
+    </div>
+    <div class="flex items-center justify-between px-5 pt-2">
+      <a href="06_gif_video.html#ready" class="w-9 h-9 rounded-full bg-white/20 text-white flex items-center justify-center"><i class="fa-solid fa-chevron-left text-[14px]"></i></a>
+      <h1 class="text-white text-[19px] font-bold">裁剪画面</h1>
+      <div class="flex items-center gap-3 bg-white/20 rounded-full px-4 py-1.5 text-white text-[14px]">
+        <i class="fa-solid fa-ellipsis"></i><span class="w-px h-4 bg-white/40"></span><i class="fa-regular fa-circle"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- 内容区 -->
+  <div class="flex-1 bg-slate-100 overflow-y-auto pb-40">
+
+    <!-- 视频 + 裁剪框 -->
+    <div class="bg-white rounded-2xl mx-4 mt-4 p-3 shadow-sm">
+      <div id="stage" class="relative aspect-video">
+        <img src="https://images.unsplash.com/photo-1567767292278-a4f21aa2d36e?auto=format&fit=crop&w=900&q=60" alt="" class="w-full h-full object-cover rounded-xl bg-slate-900">
+        <button class="absolute inset-0 flex items-center justify-center"><i class="fa-solid fa-play text-[44px] text-white/50 ml-2 drop-shadow-lg"></i></button>
+        <span class="absolute bottom-2 right-2 bg-black/50 text-white text-[11px] px-1.5 py-0.5 rounded">00:05</span>
+
+        <!-- 可拖拽 / 缩放裁剪框 -->
+        <div id="crop" class="absolute cursor-move select-none" style="left:0;top:0;width:0;height:0">
+          <div class="absolute inset-0 border-2 border-[#5B5FE9]"></div>
+          <!-- 九宫格辅助线 -->
+          <span class="absolute left-0 top-1/3 w-full h-px bg-white/70"></span>
+          <span class="absolute left-0 top-2/3 w-full h-px bg-white/70"></span>
+          <span class="absolute top-0 left-1/3 h-full w-px bg-white/70"></span>
+          <span class="absolute top-0 left-2/3 h-full w-px bg-white/70"></span>
+          <!-- 四角手柄（可缩放） -->
+          <span class="rs absolute -left-1.5 -top-1.5 w-3.5 h-3.5 rounded-full bg-[#5B5FE9] border-2 border-white cursor-nwse-resize" data-hx="-1" data-hy="-1"></span>
+          <span class="rs absolute -right-1.5 -top-1.5 w-3.5 h-3.5 rounded-full bg-[#5B5FE9] border-2 border-white cursor-nesw-resize" data-hx="1" data-hy="-1"></span>
+          <span class="rs absolute -left-1.5 -bottom-1.5 w-3.5 h-3.5 rounded-full bg-[#5B5FE9] border-2 border-white cursor-nesw-resize" data-hx="-1" data-hy="1"></span>
+          <span class="rs absolute -right-1.5 -bottom-1.5 w-3.5 h-3.5 rounded-full bg-[#5B5FE9] border-2 border-white cursor-nwse-resize" data-hx="1" data-hy="1"></span>
+          <!-- 四边手柄 -->
+          <span class="absolute -top-1.5 left-1/2 -translate-x-1/2 w-7 h-3 rounded-full bg-[#5B5FE9]"></span>
+          <span class="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-7 h-3 rounded-full bg-[#5B5FE9]"></span>
+          <span class="absolute top-1/2 -left-1.5 -translate-y-1/2 w-3 h-7 rounded-full bg-[#5B5FE9]"></span>
+          <span class="absolute top-1/2 -right-1.5 -translate-y-1/2 w-3 h-7 rounded-full bg-[#5B5FE9]"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 裁剪尺寸 -->
+    <div class="bg-white rounded-2xl mx-4 mt-4 px-4 py-3 shadow-sm">
+      <p class="text-[14px]"><span class="text-slate-500">裁剪：</span><span id="info" class="text-[#5B5FE9] font-semibold">405 × 720 (X:438 Y:0)</span></p>
+    </div>
+
+    <!-- 裁剪比例 -->
+    <div class="bg-white rounded-2xl mx-4 mt-4 p-4 shadow-sm">
+      <p class="text-[15px] font-bold text-slate-800 mb-3">裁剪比例</p>
+      <div id="ratioBox" class="grid grid-cols-4 gap-2.5">
+        <button class="rt py-2.5 rounded-lg bg-slate-100 text-slate-600 text-[14px]" data-ratio="free">自由</button>
+        <button class="rt py-2.5 rounded-lg bg-slate-100 text-slate-600 text-[14px]" data-ratio="1:1">1:1</button>
+        <button class="rt py-2.5 rounded-lg bg-[#5B5FE9] text-white text-[14px] font-semibold" data-ratio="9:16">9:16</button>
+        <button class="rt py-2.5 rounded-lg bg-slate-100 text-slate-600 text-[14px]" data-ratio="16:9">16:9</button>
+        <button class="rt py-2.5 rounded-lg bg-slate-100 text-slate-600 text-[14px]" data-ratio="3:4">3:4</button>
+        <button class="rt py-2.5 rounded-lg bg-slate-100 text-slate-600 text-[14px]" data-ratio="4:3">4:3</button>
+        <button class="rt py-2.5 rounded-lg bg-slate-100 text-slate-600 text-[14px]" data-ratio="2:1">2:1</button>
+        <button class="rt py-2.5 rounded-lg bg-slate-100 text-slate-600 text-[14px]" data-ratio="1:2">1:2</button>
+      </div>
+      <p class="text-[12px] text-slate-400 mt-3"><i class="fa-solid fa-hand-pointer mr-1"></i>拖动方框可移动裁剪区域，拖四角可等比缩放</p>
+    </div>
+  </div>
+
+  <!-- 底部按钮 -->
+  <div class="absolute bottom-0 inset-x-0 bg-white border-t border-slate-100 px-6 pt-4 pb-9 z-10">
+    <div class="flex gap-3">
+      <a href="06_gif_video.html#ready" class="flex-1 py-4 rounded-2xl bg-slate-100 text-slate-600 font-bold text-[16px] text-center">取消裁剪</a>
+      <a href="06_gif_video.html#cropped" class="flex-[1.5] py-4 rounded-2xl bg-[#5B5FE9] text-white font-bold text-[16px] text-center shadow-lg shadow-[#5B5FE9]/30">确认裁剪</a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  var SRC_W = 1280, SRC_H = 720;                       // 源视频尺寸
+  var stage = document.getElementById('stage');
+  var crop  = document.getElementById('crop');
+  var info  = document.getElementById('info');
+
+  // 以源视频像素为单位的裁剪区（默认 9:16，与设计稿一致）
+  var box = { x: 437.5, y: 0, w: 405, h: 720 };
+  var ratio = 9 / 16;                                   // null = 自由
+
+  function render() {
+    var sx = stage.clientWidth / SRC_W, sy = stage.clientHeight / SRC_H;
+    crop.style.left   = (box.x * sx) + 'px';
+    crop.style.top    = (box.y * sy) + 'px';
+    crop.style.width  = (box.w * sx) + 'px';
+    crop.style.height = (box.h * sy) + 'px';
+    info.textContent = '裁剪：' + Math.round(box.w) + ' × ' + Math.round(box.h) +
+                       ' (X:' + Math.round(box.x) + '  Y:' + Math.round(box.y) + ')';
+  }
+
+  // 拖拽：mode = 'move' 移动 / 'resize' 等比缩放
+  function bindDrag(el, resize, hx, hy) {
+    el.addEventListener('pointerdown', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      var startX = e.clientX, startY = e.clientY;
+      var s0 = { x: box.x, y: box.y, w: box.w, h: box.h };
+      var kx = SRC_W / stage.clientWidth, ky = SRC_H / stage.clientHeight;
+
+      function onMove(ev) {
+        var dx = (ev.clientX - startX) * kx;
+        var dy = (ev.clientY - startY) * ky;
+
+        if (!resize) {
+          box.x = Math.min(Math.max(0, s0.x + dx), SRC_W - s0.w);
+          box.y = Math.min(Math.max(0, s0.y + dy), SRC_H - s0.h);
+        } else {
+          var r = ratio || (s0.w / s0.h);
+          // 以拖动方向决定新宽度，另一维按比例跟随
+          var w = Math.abs(dx) > Math.abs(dy) * r ? s0.w + dx * hx : (s0.h + dy * hy) * r;
+          w = Math.max(120, Math.min(w, SRC_W, SRC_H * r));
+          var h = w / r;
+          var nx = hx > 0 ? s0.x : s0.x + s0.w - w;
+          var ny = hy > 0 ? s0.y : s0.y + s0.h - h;
+          if (nx < 0) { w = s0.x + s0.w; h = w / r; nx = 0; }
+          if (ny < 0) { h = s0.y + s0.h; w = h * r; ny = 0; }
+          if (nx + w > SRC_W) { w = SRC_W - nx; h = w / r; }
+          if (ny + h > SRC_H) { h = SRC_H - ny; w = h * r; }
+          box.w = w; box.h = h; box.x = nx; box.y = ny;
+        }
+        render();
+      }
+      function onUp() {
+        document.removeEventListener('pointermove', onMove);
+        document.removeEventListener('pointerup', onUp);
+      }
+      document.addEventListener('pointermove', onMove);
+      document.addEventListener('pointerup', onUp);
+    });
+  }
+
+  bindDrag(crop, false, 0, 0);
+  document.querySelectorAll('.rs').forEach(function (h) {
+    bindDrag(h, true, parseInt(h.dataset.hx, 10), parseInt(h.dataset.hy, 10));
+  });
+
+  // 裁剪比例
+  var RT_ON  = 'rt py-2.5 rounded-lg bg-[#5B5FE9] text-white text-[14px] font-semibold';
+  var RT_OFF = 'rt py-2.5 rounded-lg bg-slate-100 text-slate-600 text-[14px]';
+  document.querySelectorAll('.rt').forEach(function (b) {
+    b.onclick = function () {
+      document.querySelectorAll('.rt').forEach(function (x) { x.className = RT_OFF; });
+      b.className = RT_ON;
+      var v = b.dataset.ratio;
+      if (v === 'free') {
+        ratio = null;                     // 自由：保留当前尺寸
+      } else {
+        var p = v.split(':'), a = +p[0], c = +p[1];
+        ratio = a / c;
+        var k = Math.min(SRC_W / a, SRC_H / c);
+        box.w = a * k; box.h = c * k;
+        box.x = (SRC_W - box.w) / 2; box.y = (SRC_H - box.h) / 2;
+      }
+      render();
+    };
+  });
+
+  render();
+</script>
+
+</body>
+</html>

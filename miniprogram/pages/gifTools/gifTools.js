@@ -15,6 +15,10 @@ Page({
     ]
   },
   openTool(e) {
+    if (e.currentTarget.dataset.name === '视频转GIF') {
+      wx.navigateTo({ url: '/pages/gifVideo/gifVideo' });
+      return;
+    }
     if (e.currentTarget.dataset.name === '多图转GIF') {
       wx.navigateTo({ url: '/pages/gifImages/gifImages' });
       return;

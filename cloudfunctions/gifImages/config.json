@@ -1,5 +1,5 @@
 {
-  "permissions": { "openapi": ["security.imgSecCheck"] },
+  "permissions": { "openapi": ["security.imgSecCheck", "security.mediaCheckAsync"] },
   "timeout": 60,
   "envVariables": {}
 }

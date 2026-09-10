@@ -20,7 +20,7 @@
       </div>
     </div>
     <div class="flex items-center justify-between px-5 pt-2">
-      <button class="w-9 h-9 rounded-full bg-white/20 text-white flex items-center justify-center"><i class="fa-solid fa-chevron-left text-[14px]"></i></button>
+      <a href="02_gif_tools.html" class="w-9 h-9 rounded-full bg-white/20 text-white flex items-center justify-center"><i class="fa-solid fa-chevron-left text-[14px]"></i></a>
       <h1 class="text-white text-[19px] font-bold">视频转GIF</h1>
       <div class="flex items-center gap-3 bg-white/20 rounded-full px-4 py-1.5 text-white text-[14px]">
         <i class="fa-solid fa-ellipsis"></i><span class="w-px h-4 bg-white/40"></span><i class="fa-regular fa-circle"></i>
@@ -28,64 +28,210 @@
     </div>
   </div>
 
-  <!-- 内容 -->
-  <div class="flex-1 bg-slate-100 overflow-y-auto no-scrollbar pb-36">
-    <!-- 视频预览 -->
-    <div class="mx-4 mt-4">
-      <div class="relative bg-slate-900 rounded-2xl aspect-video flex items-center justify-center overflow-hidden">
-        <button class="w-16 h-16 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white text-[24px]"><i class="fa-solid fa-play ml-1"></i></button>
-        <span class="absolute bottom-3 right-3 text-white/90 text-[11px] bg-black/50 rounded px-1.5 py-0.5">00:12</span>
-        <span class="absolute top-3 left-3 text-white/90 text-[11px] bg-black/50 rounded px-1.5 py-0.5"><i class="fa-solid fa-video mr-1"></i>IMG_2046.mp4</span>
-      </div>
-      <!-- 时间轴裁剪 -->
-      <div class="mt-3 relative h-14 rounded-xl overflow-hidden">
-        <div class="absolute inset-0 flex">
-          <div class="flex-1 bg-[#c7caf5]"></div><div class="flex-1 bg-[#aeb2f0]"></div><div class="flex-1 bg-[#c7caf5]"></div><div class="flex-1 bg-[#aeb2f0]"></div><div class="flex-1 bg-[#c7caf5]"></div>
-        </div>
-        <div class="absolute inset-y-0 left-[10%] right-[20%] border-[3px] border-white rounded-lg bg-[#5B5FE9]/20"></div>
-        <div class="absolute inset-y-1 left-[10%] w-2.5 bg-white rounded-full shadow flex items-center justify-center"><i class="fa-solid fa-grip-lines-vertical text-[8px] text-slate-400"></i></div>
-        <div class="absolute inset-y-1 right-[20%] w-2.5 bg-white rounded-full shadow flex items-center justify-center"><i class="fa-solid fa-grip-lines-vertical text-[8px] text-slate-400"></i></div>
-      </div>
-      <p class="text-center text-[12px] text-slate-400 mt-1.5">已选 0.0s - 7.2s · 共 7.2 秒</p>
-    </div>
+  <!-- 内容区 -->
+  <div class="flex-1 bg-slate-100 overflow-y-auto pb-40">
 
-    <!-- 参数设置 -->
-    <div class="bg-white rounded-2xl mx-4 mt-4 p-4 shadow-sm space-y-5">
-      <div>
-        <p class="text-[14px] font-bold text-slate-800 mb-2.5">帧率 FPS</p>
-        <div class="flex gap-2">
-          <button class="flex-1 py-2.5 rounded-xl bg-[#5B5FE9] text-white text-[14px] font-bold">12</button>
-          <button class="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-600 text-[14px]">18</button>
-          <button class="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-600 text-[14px]">24</button>
-          <button class="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-600 text-[14px]">30</button>
-        </div>
+    <!-- ============ 状态 A：未选择视频 ============ -->
+    <div id="stateEmpty">
+      <div class="px-4 pt-4">
+        <button id="pickBtn" class="w-full bg-white rounded-2xl border-2 border-dashed border-slate-300 py-14 flex flex-col items-center">
+          <div class="w-[76px] h-[76px] rounded-2xl border-[5px] border-[#5B5FE9] flex items-center justify-center">
+            <i class="fa-solid fa-play text-[30px] text-[#5B5FE9] ml-1.5"></i>
+          </div>
+          <p class="text-[17px] font-bold text-slate-800 mt-5">点击选择视频</p>
+          <p class="text-[14px] text-slate-400 mt-2">支持MP4/MOV格式，最长10秒</p>
+        </button>
       </div>
-      <div>
-        <p class="text-[14px] font-bold text-slate-800 mb-2.5">输出尺寸</p>
-        <div class="flex gap-2">
-          <button class="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-600 text-[14px]">360p</button>
-          <button class="flex-1 py-2.5 rounded-xl bg-[#5B5FE9] text-white text-[14px] font-bold">480p</button>
-          <button class="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-600 text-[14px]">720p</button>
-          <button class="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-600 text-[14px]">原始</button>
+
+      <!-- 微信流量主广告位 -->
+      <div class="bg-white rounded-2xl mx-4 mt-4 p-3 shadow-sm flex items-center gap-3">
+        <div class="relative w-[112px] h-[74px] rounded-lg overflow-hidden shrink-0 bg-gradient-to-br from-slate-200 to-slate-300">
+          <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=400&q=60" alt="" class="w-full h-full object-cover" onerror="this.classList.add('opacity-0')">
+          <span class="absolute top-0 left-0 bg-black/50 text-white text-[9px] px-1 py-px rounded-br">广告</span>
         </div>
-      </div>
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="text-[14px] font-bold text-slate-800">循环播放</p>
-          <p class="text-[12px] text-slate-400 mt-0.5">关闭后 GIF 只播放一次</p>
+        <div class="flex-1 min-w-0">
+          <p class="text-[14px] font-semibold text-slate-800 leading-snug line-clamp-2">想买房了，看看降价二手房有没有合适</p>
+          <div class="flex items-center gap-1 mt-2">
+            <i class="fa-solid fa-house text-[10px] text-emerald-500"></i>
+            <span class="text-[11px] text-slate-400 truncate">安居客-买卖二...</span>
+          </div>
         </div>
-        <div class="w-12 h-7 bg-[#5B5FE9] rounded-full relative"><span class="absolute top-0.5 right-0.5 w-6 h-6 bg-white rounded-full shadow"></span></div>
+        <button class="bg-[#07C160] text-white text-[13px] font-semibold rounded-full px-3.5 py-1.5 shrink-0">了解更多</button>
       </div>
     </div>
 
-    <p class="text-center text-[12px] text-slate-400 mt-4">预计输出：480p · 12FPS · 约 2.1MB</p>
+    <!-- ============ 状态 B / D：已选择视频 ============ -->
+    <div id="stateLoaded" class="hidden">
+
+      <!-- 视频预览 -->
+      <div class="bg-white rounded-2xl mx-4 mt-4 p-3 shadow-sm">
+        <div class="relative aspect-video rounded-xl overflow-hidden bg-slate-900">
+          <img src="https://images.unsplash.com/photo-1567767292278-a4f21aa2d36e?auto=format&fit=crop&w=900&q=60" alt="" class="w-full h-full object-cover">
+          <div class="absolute inset-0 bg-black/10"></div>
+          <button class="absolute inset-0 flex items-center justify-center"><i class="fa-solid fa-play text-[44px] text-white/70 ml-2 drop-shadow-lg"></i></button>
+          <span class="absolute bottom-2 right-2 bg-black/50 text-white text-[11px] px-1.5 py-0.5 rounded">00:05</span>
+
+          <!-- 裁剪红框（已裁剪时显示） -->
+          <div id="redCrop" class="hidden absolute border-2 border-rose-500" style="left:34.18%;top:0;width:31.64%;height:100%">
+            <span class="absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap text-[11px] font-semibold text-rose-500">405x720</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 清除裁剪 -->
+      <div id="clearRow" class="hidden px-4 mt-3">
+        <button id="clearCrop" class="bg-[#FEF2F2] text-[#EF4444] text-[13px] font-semibold rounded-lg px-3.5 py-2">
+          <i class="fa-solid fa-xmark mr-1"></i>清除裁剪
+        </button>
+      </div>
+
+      <!-- 转换设置 -->
+      <div class="bg-white rounded-2xl mx-4 mt-4 p-4 shadow-sm">
+        <div class="flex items-center justify-between">
+          <p class="text-[15px] font-bold text-slate-800">转换设置</p>
+          <div class="flex items-center bg-slate-100 rounded-full p-1 gap-0.5">
+            <button id="segTrim" class="px-3.5 py-1.5 rounded-full text-[13px] bg-white text-[#5B5FE9] font-semibold border border-[#5B5FE9]">剪时长</button>
+            <a href="12_gif_crop.html" id="segCrop" class="px-3.5 py-1.5 rounded-full text-[13px] text-slate-500 border border-transparent">裁画面</a>
+          </div>
+        </div>
+
+        <!-- 帧率 -->
+        <div class="flex items-center justify-between mt-5">
+          <span class="text-[14px] text-slate-500">帧率（FPS）</span>
+          <div class="flex items-center gap-2.5">
+            <button id="fpsMinus" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center"><i class="fa-solid fa-minus text-[12px]"></i></button>
+            <span id="fpsVal" class="text-[14px] text-slate-700 w-8 text-center">10</span>
+            <button id="fpsPlus" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center"><i class="fa-solid fa-plus text-[12px]"></i></button>
+          </div>
+        </div>
+
+        <!-- 输出分辨率 -->
+        <div class="flex items-center justify-between mt-5">
+          <span class="text-[14px] text-slate-500">输出分辨率</span>
+          <span id="resVal" class="text-[14px] font-semibold text-[#5B5FE9]">320px</span>
+        </div>
+        <input id="resRange" type="range" min="1" max="4" value="2" class="w-full mt-3 accent-[#5B5FE9] cursor-pointer">
+
+        <!-- 循环次数 -->
+        <div class="flex items-center justify-between mt-5">
+          <span class="text-[14px] text-slate-500">循环次数</span>
+          <div class="flex items-center gap-2.5">
+            <button id="loopMinus" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center"><i class="fa-solid fa-minus text-[12px]"></i></button>
+            <span id="loopVal" class="text-[14px] text-slate-700 w-10 text-center">无限</span>
+            <button id="loopPlus" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-300 flex items-center justify-center"><i class="fa-solid fa-plus text-[12px]"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 广告位 -->
+      <div class="bg-white rounded-2xl mx-4 mt-4 p-3 shadow-sm flex items-center gap-3">
+        <div class="relative w-[112px] h-[74px] rounded-lg overflow-hidden shrink-0 bg-gradient-to-br from-slate-200 to-slate-300">
+          <img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=400&q=60" alt="" class="w-full h-full object-cover" onerror="this.classList.add('opacity-0')">
+          <span class="absolute top-0 left-0 bg-black/50 text-white text-[9px] px-1 py-px rounded-br">广告</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-[14px] font-semibold text-slate-800 leading-snug line-clamp-2">玩过的仙友嘴真严！这么好玩的仙友2不早点说？</p>
+          <div class="flex items-center gap-1 mt-2">
+            <i class="fa-solid fa-circle-user text-[10px] text-indigo-400"></i>
+            <span class="text-[11px] text-slate-400 truncate">青云诀2-琉璃...</span>
+          </div>
+        </div>
+        <button class="bg-[#07C160] text-white text-[13px] font-semibold rounded-full px-3.5 py-1.5 shrink-0">下载游戏</button>
+      </div>
+    </div>
   </div>
 
-  <!-- 底部生成按钮 -->
-  <div class="absolute bottom-0 inset-x-0 bg-white border-t border-slate-100 px-6 pt-4 pb-9 z-10">
-    <button class="w-full py-4 rounded-2xl bg-[#5B5FE9] text-white font-bold text-[16px] shadow-lg shadow-[#5B5FE9]/30"><i class="fa-solid fa-wand-magic-sparkles mr-2"></i>生成 GIF</button>
+  <!-- 底部按钮区（已选视频） -->
+  <div id="barLoaded" class="hidden absolute bottom-0 inset-x-0 bg-white border-t border-slate-100 px-6 pt-4 pb-9 z-10">
+    <div class="flex gap-3">
+      <button id="changeVideo" class="flex-1 py-4 rounded-2xl bg-slate-100 text-slate-600 font-bold text-[16px]">更换视频</button>
+      <button id="startBtn" class="flex-[1.5] py-4 rounded-2xl bg-[#5B5FE9] text-white font-bold text-[16px] shadow-lg shadow-[#5B5FE9]/30">开始转换</button>
+    </div>
   </div>
+
+  <!-- 转换中 / 成功 遮罩 -->
+  <div id="mask" class="hidden absolute inset-0 bg-black/40 backdrop-blur-sm z-20 flex items-center justify-center">
+    <div class="bg-white rounded-2xl px-10 py-8 flex flex-col items-center gap-3 w-[220px]">
+      <i id="maskIcon" class="fa-solid fa-spinner fa-spin text-[34px] text-[#5B5FE9]"></i>
+      <p id="maskText" class="text-[14px] font-semibold text-slate-700">正在转换…</p>
+      <p id="maskSub" class="text-[12px] text-slate-400 text-center">320px · 10FPS · 5 秒素材</p>
+    </div>
+  </div>
+
 </div>
+
+<script>
+  var stateEmpty  = document.getElementById('stateEmpty');
+  var stateLoaded = document.getElementById('stateLoaded');
+  var barLoaded   = document.getElementById('barLoaded');
+  var redCrop     = document.getElementById('redCrop');
+  var clearRow    = document.getElementById('clearRow');
+  var segTrim     = document.getElementById('segTrim');
+  var segCrop     = document.getElementById('segCrop');
+
+  var SEG_ON  = 'px-3.5 py-1.5 rounded-full text-[13px] bg-white text-[#5B5FE9] font-semibold border border-[#5B5FE9]';
+  var SEG_OFF = 'px-3.5 py-1.5 rounded-full text-[13px] text-slate-500 border border-transparent';
+
+  // state: 'empty' | 'ready' | 'cropped'
+  function show(state) {
+    var isEmpty = state === 'empty';
+    stateEmpty.classList.toggle('hidden', !isEmpty);
+    stateLoaded.classList.toggle('hidden', isEmpty);
+    barLoaded.classList.toggle('hidden', isEmpty);
+
+    var cropped = state === 'cropped';
+    redCrop.classList.toggle('hidden', !cropped);
+    clearRow.classList.toggle('hidden', !cropped);
+    segCrop.className = cropped ? SEG_ON : SEG_OFF;
+    segTrim.className = cropped ? SEG_OFF : SEG_ON;
+  }
+
+  document.getElementById('pickBtn').onclick      = function () { show('ready'); };
+  document.getElementById('changeVideo').onclick  = function () { show('empty'); };
+  document.getElementById('clearCrop').onclick    = function () { show('ready'); };
+
+  // 帧率
+  var fps = 10;
+  var fpsVal = document.getElementById('fpsVal');
+  document.getElementById('fpsMinus').onclick = function () { if (fps > 1) { fps--; fpsVal.textContent = fps; } };
+  document.getElementById('fpsPlus').onclick  = function () { if (fps < 30) { fps++; fpsVal.textContent = fps; } };
+
+  // 输出分辨率
+  var RES = ['原图', '480px', '320px', '240px'];
+  var resRange = document.getElementById('resRange');
+  var resVal = document.getElementById('resVal');
+  resRange.oninput = function () { resVal.textContent = RES[this.value - 1]; };
+
+  // 循环次数
+  var loopVal = document.getElementById('loopVal');
+  var loopNum = -1; // -1 = 无限
+  document.getElementById('loopMinus').onclick = function () {
+    if (loopNum === -1) { loopNum = 1; } else if (loopNum > 1) { loopNum--; }
+    loopVal.textContent = loopNum === -1 ? '无限' : loopNum + ' 次';
+  };
+  document.getElementById('loopPlus').onclick = function () {
+    if (loopNum === -1) { return; }
+    loopNum++; loopVal.textContent = loopNum + ' 次';
+  };
+
+  // 开始转换
+  var mask = document.getElementById('mask');
+  document.getElementById('startBtn').onclick = function () {
+    mask.classList.remove('hidden');
+    document.getElementById('maskIcon').className = 'fa-solid fa-spinner fa-spin text-[34px] text-[#5B5FE9]';
+    document.getElementById('maskText').textContent = '正在转换…';
+    setTimeout(function () {
+      document.getElementById('maskIcon').className = 'fa-solid fa-circle-check text-[34px] text-emerald-500';
+      document.getElementById('maskText').textContent = '转换成功，已保存到相册';
+      document.getElementById('maskSub').textContent = 'file://gif/20260910_2152.gif';
+      setTimeout(function () { mask.classList.add('hidden'); }, 1400);
+    }, 1800);
+  };
+
+  // 支持 #empty / #ready / #cropped 直接定位状态（总览页并排展示用）
+  var hash = location.hash.replace('#', '');
+  show(hash === 'empty' ? 'empty' : (hash === 'cropped' ? 'cropped' : 'ready'));
+</script>
 
 </body>
 </html>

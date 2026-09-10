@@ -15,6 +15,10 @@ Page({
     ]
   },
   openTool(e) {
+    if (e.currentTarget.dataset.name === '多图转GIF') {
+      wx.navigateTo({ url: '/pages/gifImages/gifImages' });
+      return;
+    }
     wx.showToast({ title: `${e.currentTarget.dataset.name}即将上线`, icon: 'none' });
   },
   goCreate() {

@@ -1,0 +1,75 @@
+<view class="page">
+  <view class="header">
+    <view class="nav">
+      <view class="back" bindtap="goBack">‹</view>
+      <text>图片合成GIF</text>
+      <view class="capsule">•••　◯</view>
+    </view>
+  </view>
+
+  <scroll-view class="content" scroll-y enhanced show-scrollbar="false">
+    <view wx:if="{{!images.length}}" class="empty-wrap">
+      <view class="picker" bindtap="chooseImages">
+        <image src="/images/gif-tools/images.svg" mode="aspectFit"/>
+        <text class="picker-title">点击选择图片</text>
+        <text class="picker-sub">选择 2-20 张图片合成 GIF</text>
+      </view>
+      <view class="tip">💡 按顺序选择图片，排在前面的图片会先播放；长按缩略图可拖拽调整顺序。图片会先通过微信官方内容安全审核。</view>
+    </view>
+
+    <block wx:else>
+      <view class="preview-card">
+        <image class="preview" src="{{images[previewIndex].path}}" mode="aspectFit"/>
+        <view class="preview-badge">{{previewIndex + 1}} / {{images.length}}</view>
+      </view>
+
+      <view class="card selected-card">
+        <view class="card-head">
+          <view><text class="card-title">已选图片</text><text class="muted">（{{images.length}}/20） 长按拖拽排序</text></view>
+          <text class="add" bindtap="chooseImages">＋ 添加</text>
+        </view>
+        <view class="thumb-grid">
+          <view wx:for="{{images}}" wx:key="id" class="thumb {{dragIndex === index ? 'dragging' : ''}}" data-index="{{index}}" bindlongpress="startDrag" bindtouchmove="moveDrag" bindtouchend="endDrag">
+            <image src="{{item.path}}" mode="aspectFill"/>
+            <view class="remove" data-index="{{index}}" catchtap="removeImage">×</view>
+            <view class="number">{{index + 1}}</view>
+          </view>
+        </view>
+      </view>
+
+      <view class="card settings">
+        <text class="card-title">合成设置</text>
+        <view class="setting-line"><text>播放速度</text><text class="value">{{fps}} fps</text></view>
+        <slider min="1" max="20" value="{{fps}}" activeColor="#5B5FE9" block-color="#5B5FE9" block-size="20" bindchange="changeFps" bindchanging="changeFps"/>
+        <text class="setting-label">输出分辨率</text>
+        <view class="segments">
+          <view wx:for="{{resolutions}}" wx:key="value" class="{{resolution === item.value ? 'active' : ''}}" data-value="{{item.value}}" bindtap="chooseResolution">{{item.label}}</view>
+        </view>
+        <view class="setting-line loop-line">
+          <text>循环次数</text>
+          <view class="stepper"><view bindtap="loopMinus">−</view><text>{{loop === 0 ? '无限' : loop + ' 次'}}</text><view bindtap="loopPlus">＋</view></view>
+        </view>
+      </view>
+      <text class="estimate">输出：{{resolutionLabel}} · {{fps}}FPS · {{loop === 0 ? '无限循环' : loop + '次循环'}}</text>
+      <view class="scroll-spacer"/>
+    </block>
+  </scroll-view>
+
+  <view class="bottom-bar">
+    <button wx:if="{{!images.length}}" class="disabled" disabled>请先选择图片</button>
+    <view wx:else class="actions">
+      <button class="secondary" bindtap="reselect">重新选择</button>
+      <button class="primary" loading="{{generating}}" disabled="{{images.length < 2 || generating}}" bindtap="generateGif">生成GIF</button>
+    </view>
+  </view>
+
+  <canvas type="2d" id="frameCanvas" class="export-canvas"/>
+  <view wx:if="{{resultVisible}}" class="result-mask">
+    <view class="result-panel">
+      <text class="result-title">GIF 已生成</text>
+      <image class="result-image" src="{{generatedGif}}" mode="aspectFit"/>
+      <button class="save-button" bindtap="saveGeneratedGif">保存到相册</button>
+      <view class="result-close" bindtap="closeResult">×</view>
+    </view>
+  </view>
+</view>

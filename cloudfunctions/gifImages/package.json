@@ -1,0 +1,11 @@
+{
+  "name": "gif-images",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "image-q": "^4.0.0",
+    "omggif": "^1.0.10",
+    "pngjs": "^7.0.0",
+    "wx-server-sdk": "~2.4.0"
+  }
+}

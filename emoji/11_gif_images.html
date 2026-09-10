@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>图片合成GIF</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+<body class="bg-slate-200 min-h-screen flex items-center justify-center py-6 font-sans">
+
+<div class="relative bg-white rounded-[56px] border-[14px] border-black shadow-2xl overflow-hidden flex flex-col" style="width:430px;height:932px">
+
+  <!-- 顶部蓝色区 -->
+  <div class="bg-[#5B5FE9] shrink-0 pb-5">
+    <div class="flex items-center justify-between px-9 pt-4 pb-1 text-white">
+      <span class="text-[15px] font-semibold tracking-wide">9:41</span>
+      <div class="flex items-center gap-1.5 text-[13px]">
+        <i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-full text-[16px]"></i>
+      </div>
+    </div>
+    <div class="flex items-center justify-between px-5 pt-2">
+      <a href="02_gif_tools.html" class="w-9 h-9 rounded-full bg-white/20 text-white flex items-center justify-center"><i class="fa-solid fa-chevron-left text-[14px]"></i></a>
+      <h1 class="text-white text-[19px] font-bold">图片合成GIF</h1>
+      <div class="flex items-center gap-3 bg-white/20 rounded-full px-4 py-1.5 text-white text-[14px]">
+        <i class="fa-solid fa-ellipsis"></i><span class="w-px h-4 bg-white/40"></span><i class="fa-regular fa-circle"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- 内容区 -->
+  <div class="flex-1 bg-slate-100 overflow-y-auto pb-40">
+
+    <!-- ============ 状态 A：未选择图片 ============ -->
+    <div id="stateEmpty">
+      <div class="px-4 pt-4">
+        <button id="pickBtn" class="w-full bg-white rounded-2xl border-2 border-dashed border-slate-300 py-14 flex flex-col items-center">
+          <i class="fa-solid fa-image text-[74px] text-[#5B5FE9]"></i>
+          <p class="text-[17px] font-bold text-slate-800 mt-5">点击选择图片</p>
+          <p class="text-[14px] text-slate-400 mt-2">选择 2-20 张图片合成 GIF</p>
+        </button>
+      </div>
+
+      <div class="mx-4 mt-4 bg-white/70 rounded-2xl p-4">
+        <p class="text-[13px] text-slate-500 leading-relaxed">
+          <i class="fa-solid fa-lightbulb text-amber-400 mr-1"></i>按顺序选择图片，排在前面的图片会先播放；长按缩略图可拖拽调整顺序。
+        </p>
+      </div>
+    </div>
+
+    <!-- ============ 状态 B：已选择 3 张 ============ -->
+    <div id="stateReady" class="hidden">
+      <!-- 合成预览 -->
+      <div class="mx-4 mt-4">
+        <div class="bg-white rounded-2xl p-2 shadow-sm">
+          <div class="grid grid-cols-2 gap-1 rounded-xl overflow-hidden">
+            <div class="aspect-[4/3] bg-gradient-to-br from-slate-200 to-slate-300">
+              <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=600&q=60" alt="" class="w-full h-full object-cover" onerror="this.classList.add('opacity-0')">
+            </div>
+            <div class="aspect-[4/3] bg-gradient-to-br from-slate-200 to-slate-300">
+              <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=60" alt="" class="w-full h-full object-cover" onerror="this.classList.add('opacity-0')">
+            </div>
+            <div class="aspect-[4/3] bg-gradient-to-br from-slate-200 to-slate-300">
+              <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=600&q=60" alt="" class="w-full h-full object-cover" onerror="this.classList.add('opacity-0')">
+            </div>
+            <div class="aspect-[4/3] bg-gradient-to-br from-slate-200 to-slate-300">
+              <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=600&q=60" alt="" class="w-full h-full object-cover" onerror="this.classList.add('opacity-0')">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 已选图片 -->
+      <div class="bg-white rounded-2xl mx-4 mt-4 p-4 shadow-sm">
+        <div class="flex items-center justify-between">
+          <div class="flex items-baseline gap-1.5">
+            <p class="text-[15px] font-bold text-slate-800">已选图片</p>
+            <span class="text-[14px] text-slate-400">(<span id="count">3</span>/20)</span>
+            <span class="text-[12px] text-slate-400 ml-1">长按拖拽排序</span>
+          </div>
+          <button id="addBtn" class="text-[#5B5FE9] text-[14px] font-semibold"><i class="fa-solid fa-plus text-[11px] mr-0.5"></i>添加</button>
+        </div>
+
+        <div id="thumbList" class="flex flex-wrap gap-2.5 mt-3">
+          <div class="thumb relative w-[88px] h-[88px] rounded-xl overflow-hidden shrink-0 bg-gradient-to-br from-slate-200 to-slate-300">
+            <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=300&q=60" alt="" class="w-full h-full object-cover" onerror="this.classList.add('opacity-0')">
+            <button class="removeBtn absolute top-1 right-1 w-[18px] h-[18px] rounded-full bg-rose-500 text-white text-[9px] flex items-center justify-center shadow"><i class="fa-solid fa-xmark"></i></button>
+            <span class="num absolute bottom-1 left-1 min-w-[17px] h-[17px] px-1 rounded-[5px] bg-black/45 text-white text-[10px] flex items-center justify-center">1</span>
+          </div>
+          <div class="thumb relative w-[88px] h-[88px] rounded-xl overflow-hidden shrink-0 bg-gradient-to-br from-slate-200 to-slate-300">
+            <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=300&q=60" alt="" class="w-full h-full object-cover" onerror="this.classList.add('opacity-0')">
+            <button class="removeBtn absolute top-1 right-1 w-[18px] h-[18px] rounded-full bg-rose-500 text-white text-[9px] flex items-center justify-center shadow"><i class="fa-solid fa-xmark"></i></button>
+            <span class="num absolute bottom-1 left-1 min-w-[17px] h-[17px] px-1 rounded-[5px] bg-black/45 text-white text-[10px] flex items-center justify-center">2</span>
+          </div>
+          <div class="thumb relative w-[88px] h-[88px] rounded-xl overflow-hidden shrink-0 bg-gradient-to-br from-slate-200 to-slate-300">
+            <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=300&q=60" alt="" class="w-full h-full object-cover" onerror="this.classList.add('opacity-0')">
+            <button class="removeBtn absolute top-1 right-1 w-[18px] h-[18px] rounded-full bg-rose-500 text-white text-[9px] flex items-center justify-center shadow"><i class="fa-solid fa-xmark"></i></button>
+            <span class="num absolute bottom-1 left-1 min-w-[17px] h-[17px] px-1 rounded-[5px] bg-black/45 text-white text-[10px] flex items-center justify-center">3</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 合成设置 -->
+      <div class="bg-white rounded-2xl mx-4 mt-4 p-4 shadow-sm">
+        <p class="text-[15px] font-bold text-slate-800 mb-4">合成设置</p>
+
+        <!-- 播放速度 -->
+        <div class="flex items-center justify-between">
+          <span class="text-[14px] text-slate-500">播放速度</span>
+          <span class="text-[14px] font-semibold text-[#5B5FE9]"><span id="fpsVal">5</span> fps</span>
+        </div>
+        <input id="fps" type="range" min="1" max="20" value="5" class="w-full mt-3 accent-[#5B5FE9] cursor-pointer">
+
+        <!-- 输出分辨率 -->
+        <p class="text-[14px] text-slate-500 mt-6 mb-2.5">输出分辨率</p>
+        <div class="flex gap-2">
+          <button class="resBtn flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-600 text-[14px]">原图</button>
+          <button class="resBtn flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-600 text-[14px]">240p</button>
+          <button class="resBtn flex-1 py-2.5 rounded-xl bg-[#E9EAFD] text-[#5B5FE9] font-bold border border-[#5B5FE9]/25">320p</button>
+          <button class="resBtn flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-600 text-[14px]">480p</button>
+        </div>
+
+        <!-- 循环次数 -->
+        <div class="flex items-center justify-between mt-6">
+          <span class="text-[14px] text-slate-500">循环次数</span>
+          <div class="flex items-center gap-3">
+            <button id="loopMinus" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-500 flex items-center justify-center"><i class="fa-solid fa-minus text-[12px]"></i></button>
+            <span id="loopVal" class="text-[14px] text-slate-700 w-10 text-center">无限</span>
+            <button id="loopPlus" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-300 flex items-center justify-center"><i class="fa-solid fa-plus text-[12px]"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <p class="text-center text-[12px] text-slate-400 mt-4">预计输出：320p · 5FPS · 约 1.2MB</p>
+    </div>
+  </div>
+
+  <!-- 底部按钮区（空态） -->
+  <div id="barEmpty" class="absolute bottom-0 inset-x-0 bg-white border-t border-slate-100 px-6 pt-4 pb-9 z-10">
+    <button class="w-full py-4 rounded-2xl bg-slate-200 text-slate-400 font-bold text-[16px] cursor-not-allowed">请先选择图片</button>
+  </div>
+
+  <!-- 底部按钮区（已选态） -->
+  <div id="barReady" class="hidden absolute bottom-0 inset-x-0 bg-white border-t border-slate-100 px-6 pt-4 pb-9 z-10">
+    <div class="flex gap-3">
+      <button id="reselectBtn" class="flex-1 py-4 rounded-2xl bg-slate-100 text-slate-600 font-bold text-[16px]">重新选择</button>
+      <button id="genBtn" class="flex-[1.5] py-4 rounded-2xl bg-[#5B5FE9] text-white font-bold text-[16px] shadow-lg shadow-[#5B5FE9]/30">生成GIF</button>
+    </div>
+  </div>
+
+  <!-- 生成中 / 成功 遮罩 -->
+  <div id="mask" class="hidden absolute inset-0 bg-black/40 backdrop-blur-sm z-20 flex items-center justify-center">
+    <div class="bg-white rounded-2xl px-10 py-8 flex flex-col items-center gap-3 w-[210px]">
+      <i id="maskIcon" class="fa-solid fa-spinner fa-spin text-[34px] text-[#5B5FE9]"></i>
+      <p id="maskText" class="text-[14px] font-semibold text-slate-700">正在生成 GIF…</p>
+      <p id="maskSub" class="text-[12px] text-slate-400">共 3 帧 · 320p</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  var stateEmpty = document.getElementById('stateEmpty');
+  var stateReady = document.getElementById('stateReady');
+  var barEmpty   = document.getElementById('barEmpty');
+  var barReady   = document.getElementById('barReady');
+  var thumbList  = document.getElementById('thumbList');
+  var countEl    = document.getElementById('count');
+
+  function show(state) {
+    var ready = state === 'ready';
+    stateEmpty.classList.toggle('hidden', ready);
+    stateReady.classList.toggle('hidden', !ready);
+    barEmpty.classList.toggle('hidden', ready);
+    barReady.classList.toggle('hidden', !ready);
+    if (ready) { renumber(); }
+  }
+
+  // 重新编号 + 同步计数
+  function renumber() {
+    var thumbs = thumbList.querySelectorAll('.thumb');
+    countEl.textContent = thumbs.length;
+    thumbs.forEach(function (t, i) {
+      var n = t.querySelector('.num');
+      if (n) { n.textContent = i + 1; }
+    });
+  }
+
+  document.getElementById('pickBtn').onclick  = function () { show('ready'); };
+  document.getElementById('addBtn').onclick   = function () { show('ready'); };
+  document.getElementById('reselectBtn').onclick = function () { show('empty'); };
+
+  // 删除单张
+  thumbList.querySelectorAll('.removeBtn').forEach(function (btn) {
+    btn.onclick = function () {
+      btn.closest('.thumb').remove();
+      if (thumbList.querySelectorAll('.thumb').length === 0) { show('empty'); } else { renumber(); }
+    };
+  });
+
+  // 分辨率分段选择
+  var resBase = 'resBtn flex-1 py-2.5 rounded-xl text-[14px] ';
+  document.querySelectorAll('.resBtn').forEach(function (b) {
+    b.onclick = function () {
+      document.querySelectorAll('.resBtn').forEach(function (x) {
+        x.className = resBase + 'bg-slate-100 text-slate-600';
+      });
+      b.className = resBase + 'bg-[#E9EAFD] text-[#5B5FE9] font-bold border border-[#5B5FE9]/25';
+    };
+  });
+
+  // 播放速度
+  document.getElementById('fps').oninput = function () {
+    document.getElementById('fpsVal').textContent = this.value;
+  };
+
+  // 循环次数：无限 -> 1 -> 2 ...
+  var loopVal = document.getElementById('loopVal');
+  var loopNum = -1; // -1 表示无限
+  document.getElementById('loopMinus').onclick = function () {
+    if (loopNum === -1) { loopNum = 1; }
+    else if (loopNum > 1) { loopNum--; }
+    loopVal.textContent = loopNum === -1 ? '无限' : loopNum + ' 次';
+  };
+  document.getElementById('loopPlus').onclick = function () {
+    if (loopNum === -1) { return; }
+    loopNum++;
+    loopVal.textContent = loopNum + ' 次';
+  };
+
+  // 生成 GIF：加载态 -> 成功态
+  var mask = document.getElementById('mask');
+  document.getElementById('genBtn').onclick = function () {
+    mask.classList.remove('hidden');
+    document.getElementById('maskIcon').className = 'fa-solid fa-spinner fa-spin text-[34px] text-[#5B5FE9]';
+    document.getElementById('maskText').textContent = '正在生成 GIF…';
+    setTimeout(function () {
+      document.getElementById('maskIcon').className = 'fa-solid fa-circle-check text-[34px] text-emerald-500';
+      document.getElementById('maskText').textContent = '生成成功，已保存到相册';
+      document.getElementById('maskSub').textContent = 'file://gif/20260910_1941.gif';
+      setTimeout(function () { mask.classList.add('hidden'); }, 1400);
+    }, 1800);
+  };
+
+  // 支持 #ready / #empty 直接定位状态（总览页并排展示用）
+  if (location.hash === '#ready') { show('ready'); }
+</script>
+
+</body>
+</html>

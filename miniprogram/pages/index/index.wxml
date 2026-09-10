@@ -1,1 +1,97 @@
-<view class="page"><view class="hero"><view class="nav"><view class="nav-title">DIY自制表情包</view><view class="nav-tools">•••　○</view></view><view class="canvas-tip">单指：滑动元素　双指：缩放旋转　点击：水平翻转</view><view class="canvas" bindtouchstart="startGesture" catchtouchmove="moveGesture" bindtouchend="endGesture"><view wx:if="{{body}}" class="canvas-layer" style="left:{{bodyPosition.x}}%;top:{{bodyPosition.y}}%;transform:translate(-50%,-50%) scale({{bodyTransform.scale}}) rotate({{bodyTransform.rotate}}deg) scaleX({{bodyTransform.flip ? -1 : 1}});" data-layer="body"><image class="layer-image body-image" src="{{bodyFileUrl}}" mode="aspectFit"/></view><view wx:if="{{expression}}" class="canvas-layer" style="left:{{expressionPosition.x}}%;top:{{expressionPosition.y}}%;transform:translate(-50%,-50%) scale({{expressionTransform.scale}}) rotate({{expressionTransform.rotate}}deg);" data-layer="expression"><image class="layer-image expression-image" src="{{expressionFileUrl}}" mode="aspectFit"/></view><view wx:if="{{accessory}}" class="canvas-layer" style="left:{{accessoryPosition.x}}%;top:{{accessoryPosition.y}}%;transform:translate(-50%,-50%) scale({{accessoryTransform.scale}}) rotate({{accessoryTransform.rotate}}deg);" data-layer="accessory"><image class="layer-image accessory-image" src="{{accessoryFileUrl}}" mode="aspectFit"/></view><view wx:if="{{text}}" class="canvas-layer text-layer" style="left:{{textPositionData.x}}%;top:{{textPositionData.y}}%;transform:translate(-50%,-50%) scale({{textTransform.scale}}) rotate({{textTransform.rotate}}deg);" data-layer="text"><text class="canvas-text {{textBold ? 'text-bold' : ''}}" style="color:{{textColor}};-webkit-text-stroke:{{textStroke ? '3rpx' : '0'}} {{strokeColor}};">{{text}}</text></view></view><view class="clear-canvas" bindtap="clearCanvas">🧹</view><view class="steps"><view wx:for="{{steps}}" wx:key="*this" class="step {{currentStep === index ? 'active' : ''}}" data-index="{{index}}" bindtap="chooseStep">{{item}}<view wx:if="{{currentStep === index}}" class="step-line"/></view></view></view><scroll-view class="content" scroll-y="true"><block wx:if="{{currentStep < 3}}"><scroll-view class="categories" scroll-x="true"><view class="category {{categoryIndex === index ? 'category-active' : ''}}" wx:for="{{categories[currentStep]}}" wx:key="*this" data-index="{{index}}" bindtap="chooseCategory">{{item}}</view></scroll-view><view class="asset-grid"><view wx:for="{{currentStep === 0 ? bodies : currentStep === 1 ? expressions : accessories}}" wx:key="index" class="asset {{(currentStep === 0 && selectedBody === index) || (currentStep === 1 && selectedExpression === index) || (currentStep === 2 && selectedAccessory === index) ? 'asset-selected' : ''}}" data-type="{{currentStep === 0 ? 'body' : currentStep === 1 ? 'expression' : 'accessory'}}" data-index="{{index}}" bindtap="chooseItem"><image class="asset-image {{currentStep === 1 ? 'expression-preview' : ''}}" src="{{item.fileUrl}}" mode="aspectFit"/><view wx:if="{{(currentStep === 0 && selectedBody === index) || (currentStep === 1 && selectedExpression === index) || (currentStep === 2 && selectedAccessory === index)}}" class="asset-selected-mask"><image src="/images/adjust-slider.png" mode="aspectFit"/></view><view wx:if="{{(currentStep === 0 && selectedBody === index) || (currentStep === 1 && selectedExpression === index) || (currentStep === 2 && selectedAccessory === index)}}" class="asset-remove" catchtap="removeLayer" data-layer="{{currentStep === 0 ? 'body' : currentStep === 1 ? 'expression' : 'accessory'}}">×</view></view></view></block><view wx:if="{{currentStep === 3}}" class="text-editor"><view class="text-input-panel"><view class="text-input-row"><textarea value="{{textInput}}" placeholder="点击输入" auto-height="true" maxlength="-1" bindinput="updateText"/><text wx:if="{{text}}" bindtap="clearText">×</text></view><view class="rainbow"><view class="color-preview" style="background:{{textColor}}"/><view wx:for="{{['#000000','#5b5fe9','#a855f7','#ef6b66','#f6d365','#5ac77f','#ffffff']}}" wx:key="*this" class="color-stop" style="background:{{item}}" data-color="{{item}}" bindtap="setTextColor"/></view></view><view class="setting-row"><text>字体加粗</text><view class="switch {{textBold ? 'on' : ''}}" bindtap="toggleBold"><view/></view></view><view class="stroke-setting"><view class="setting-row stroke-title"><text>显示描边</text><view class="switch {{textStroke ? 'on' : ''}}" bindtap="toggleStroke"><view/></view></view><view wx:if="{{textStroke}}" class="rainbow stroke-rainbow"><view class="color-preview" style="background:{{strokeColor}}"/><view wx:for="{{['#000000','#5b5fe9','#a855f7','#ef6b66','#f6d365','#5ac77f','#ffffff']}}" wx:key="*this" class="color-stop" style="background:{{item}}" data-color="{{item}}" bindtap="setStrokeColor"/></view></view><view class="text-tip">「贴文字」支持换行，双指缩放调整大小和旋转</view></view></scroll-view><view class="tabbar"><view class="tab active">◆<text>制作表情</text></view><view class="tab">GIF<text>GIF工具</text></view><view class="tab">☻<text>表情仓库</text></view><view class="tab">▦<text>更多工具</text></view><view class="tab" bindtap="goProfile">♟<text>个人中心</text></view></view></view>
+<view class="page">
+  <view class="hero">
+    <view class="nav">
+      <view class="nav-title">DIY自制表情包</view>
+      <view class="nav-tools">•••　○</view>
+    </view>
+    <view class="canvas-tip">单指：滑动元素　双指：缩放旋转　点击：水平翻转</view>
+    <view class="canvas {{currentStep === 4 && (transparentBackground || saveSize !== 'large') ? 'canvas-transparent' : ''}}" bindtouchstart="startGesture" catchtouchmove="moveGesture" bindtouchend="endGesture">
+      <view class="canvas-composition" style="transform:scale({{previewScale}});">
+        <view wx:if="{{currentStep === 4 && saveSize !== 'large' && !transparentBackground}}" class="composition-background"/>
+        <view wx:if="{{body}}" class="canvas-layer" style="left:{{bodyPosition.x}}%;top:{{bodyPosition.y}}%;transform:translate(-50%,-50%) scale({{bodyTransform.scale}}) rotate({{bodyTransform.rotate}}deg) scaleX({{bodyTransform.flip ? -1 : 1}});" data-layer="body">
+          <image class="layer-image body-image" src="{{bodyFileUrl}}" mode="aspectFit"/>
+        </view>
+        <view wx:if="{{expression}}" class="canvas-layer" style="left:{{expressionPosition.x}}%;top:{{expressionPosition.y}}%;transform:translate(-50%,-50%) scale({{expressionTransform.scale}}) rotate({{expressionTransform.rotate}}deg);" data-layer="expression">
+          <image class="layer-image expression-image" src="{{expressionFileUrl}}" mode="aspectFit"/>
+        </view>
+        <view wx:if="{{accessory}}" class="canvas-layer" style="left:{{accessoryPosition.x}}%;top:{{accessoryPosition.y}}%;transform:translate(-50%,-50%) scale({{accessoryTransform.scale}}) rotate({{accessoryTransform.rotate}}deg);" data-layer="accessory">
+          <image class="layer-image accessory-image" src="{{accessoryFileUrl}}" mode="aspectFit"/>
+        </view>
+        <view wx:if="{{text}}" class="canvas-layer text-layer" style="left:{{textPositionData.x}}%;top:{{textPositionData.y}}%;transform:translate(-50%,-50%) scale({{textTransform.scale}}) rotate({{textTransform.rotate}}deg);" data-layer="text">
+          <text class="canvas-text {{textBold ? 'text-bold' : ''}}" style="color:{{textColor}};-webkit-text-stroke:{{textStroke ? '3rpx' : '0'}} {{strokeColor}};">{{text}}</text>
+        </view>
+      </view>
+    </view>
+    <view class="clear-canvas" bindtap="clearCanvas">🧹</view>
+    <view class="steps">
+      <view wx:for="{{steps}}" wx:key="*this" class="step {{currentStep === index ? 'active' : ''}}" data-index="{{index}}" bindtap="chooseStep">
+        {{item}}<view wx:if="{{currentStep === index}}" class="step-line"/>
+      </view>
+    </view>
+  </view>
+
+  <scroll-view class="content" scroll-y="true">
+    <block wx:if="{{currentStep < 3}}">
+      <scroll-view class="categories" scroll-x="true">
+        <view class="category {{categoryIndex === index ? 'category-active' : ''}}" wx:for="{{categories[currentStep]}}" wx:key="*this" data-index="{{index}}" bindtap="chooseCategory">{{item}}</view>
+      </scroll-view>
+      <view class="asset-grid">
+        <view wx:for="{{currentStep === 0 ? bodies : currentStep === 1 ? expressions : accessories}}" wx:key="index" class="asset {{(currentStep === 0 && selectedBody === index) || (currentStep === 1 && selectedExpression === index) || (currentStep === 2 && selectedAccessory === index) ? 'asset-selected' : ''}}" data-type="{{currentStep === 0 ? 'body' : currentStep === 1 ? 'expression' : 'accessory'}}" data-index="{{index}}" bindtap="chooseItem">
+          <image class="asset-image {{currentStep === 1 ? 'expression-preview' : ''}}" src="{{item.fileUrl}}" mode="aspectFit"/>
+          <view wx:if="{{(currentStep === 0 && selectedBody === index) || (currentStep === 1 && selectedExpression === index) || (currentStep === 2 && selectedAccessory === index)}}" class="asset-selected-mask"><image src="/images/adjust-slider.png" mode="aspectFit"/></view>
+          <view wx:if="{{(currentStep === 0 && selectedBody === index) || (currentStep === 1 && selectedExpression === index) || (currentStep === 2 && selectedAccessory === index)}}" class="asset-remove" catchtap="removeLayer" data-layer="{{currentStep === 0 ? 'body' : currentStep === 1 ? 'expression' : 'accessory'}}">×</view>
+        </view>
+      </view>
+    </block>
+
+    <view wx:if="{{currentStep === 3}}" class="text-editor">
+      <view class="text-input-panel">
+        <view class="text-input-row"><textarea value="{{textInput}}" placeholder="点击输入" auto-height="true" maxlength="-1" bindinput="updateText"/><text wx:if="{{text}}" bindtap="clearText">×</text></view>
+        <view class="rainbow"><view class="color-preview" style="background:{{textColor}}"/><view wx:for="{{['#000000','#5b5fe9','#a855f7','#ef6b66','#f6d365','#5ac77f','#ffffff']}}" wx:key="*this" class="color-stop" style="background:{{item}}" data-color="{{item}}" bindtap="setTextColor"/></view>
+      </view>
+      <view class="setting-row"><text>字体加粗</text><view class="switch {{textBold ? 'on' : ''}}" bindtap="toggleBold"><view/></view></view>
+      <view class="stroke-setting">
+        <view class="setting-row stroke-title"><text>显示描边</text><view class="switch {{textStroke ? 'on' : ''}}" bindtap="toggleStroke"><view/></view></view>
+        <view wx:if="{{textStroke}}" class="rainbow stroke-rainbow"><view class="color-preview" style="background:{{strokeColor}}"/><view wx:for="{{['#000000','#5b5fe9','#a855f7','#ef6b66','#f6d365','#5ac77f','#ffffff']}}" wx:key="*this" class="color-stop" style="background:{{item}}" data-color="{{item}}" bindtap="setStrokeColor"/></view>
+      </view>
+      <view class="text-tip">「贴文字」支持换行，双指缩放调整大小和旋转</view>
+    </view>
+
+    <view wx:if="{{currentStep === 4}}" class="save-editor">
+      <view class="save-options-card">
+        <view class="save-option-row"><text>转为表情格式</text><view class="switch {{convertEmoji ? 'on' : ''}}" bindtap="toggleConvertEmoji"><view/></view></view>
+        <view class="save-option-row"><text>设置透明背景</text><view class="switch {{transparentBackground ? 'on' : ''}}" bindtap="toggleTransparentBackground"><view/></view></view>
+      </view>
+      <view class="save-choice-card">
+        <view class="segment">
+          <view class="{{saveSize === 'small' ? 'selected' : ''}}" data-size="small" bindtap="setSaveSize">小尺寸</view>
+          <view class="{{saveSize === 'medium' ? 'selected' : ''}}" data-size="medium" bindtap="setSaveSize">中尺寸</view>
+          <view class="{{saveSize === 'large' ? 'selected' : ''}}" data-size="large" bindtap="setSaveSize">大尺寸</view>
+        </view>
+        <view class="segment quality-segment">
+          <view class="{{qualityMode === 'bad' ? 'selected' : ''}}" data-mode="bad" bindtap="setQualityMode">渣图</view>
+          <view class="{{qualityMode === 'compressed' ? 'selected' : ''}}" data-mode="compressed" bindtap="setQualityMode">压缩</view>
+          <view class="{{qualityMode === 'lossless' ? 'selected' : ''}}" data-mode="lossless" bindtap="setQualityMode">无损</view>
+        </view>
+      </view>
+      <button class="generate-button" loading="{{generating}}" bindtap="generateEmoji">生成</button>
+    </view>
+  </scroll-view>
+
+  <view class="tabbar">
+    <view class="tab active">◆<text>制作表情</text></view>
+    <view class="tab">GIF<text>GIF工具</text></view>
+    <view class="tab">☻<text>表情仓库</text></view>
+    <view class="tab">▦<text>更多工具</text></view>
+    <view class="tab" bindtap="goProfile">♟<text>个人中心</text></view>
+  </view>
+
+  <canvas type="2d" id="exportCanvas" class="export-canvas"/>
+  <view wx:if="{{resultVisible}}" class="result-mask">
+    <view class="result-panel">
+      <image class="result-image {{transparentBackground || saveSize !== 'large' ? 'result-transparent' : ''}}" src="{{generatedImage}}" mode="aspectFit"/>
+      <button class="save-result-button" bindtap="saveGeneratedImage">保存图片</button>
+      <view class="result-close" bindtap="closeResult">×</view>
+    </view>
+  </view>
+</view>

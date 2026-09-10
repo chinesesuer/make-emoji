@@ -1,5 +1,5 @@
 Page({
-  data: { currentStep: 0, steps: ['选身体','选表情','选挂件','贴文字','存表情'], categories: [[], [], []], categoryIndex: 0, selectedBody: -1, selectedExpression: -1, selectedAccessory: -1, bodies: [], expressions: [], accessories: [], body: '', expression: '', accessory: '', text: '', textInput: '', textStyle: 0, textColor: '#111111', strokeColor: '#ffffff', textPosition: 'bottom', hotTexts: [], textBold: false, textStroke: true, activeLayer: '', bodyPosition: { x: 50, y: 50 }, expressionPosition: { x: 42, y: 56 }, accessoryPosition: { x: 62, y: 38 }, textPositionData: { x: 50, y: 84 }, bodyTransform: { scale: 1, rotate: 0, flip: false }, expressionTransform: { scale: 1, rotate: 0, flip: false }, accessoryTransform: { scale: 1, rotate: 0, flip: false }, textTransform: { scale: 1, rotate: 0, flip: false } },
+  data: { currentStep: 0, steps: ['选身体','选表情','选挂件','贴文字','存表情'], categories: [[], [], []], categoryIndex: 0, selectedBody: -1, selectedExpression: -1, selectedAccessory: -1, bodies: [], expressions: [], accessories: [], body: '', expression: '', accessory: '', text: '', textInput: '', textStyle: 0, textColor: '#111111', strokeColor: '#ffffff', textPosition: 'bottom', hotTexts: [], textBold: false, textStroke: true, activeLayer: '', bodyPosition: { x: 50, y: 50 }, expressionPosition: { x: 42, y: 56 }, accessoryPosition: { x: 62, y: 38 }, textPositionData: { x: 50, y: 84 }, bodyTransform: { scale: 1, rotate: 0, flip: false }, expressionTransform: { scale: 1, rotate: 0, flip: false }, accessoryTransform: { scale: 1, rotate: 0, flip: false }, textTransform: { scale: 1, rotate: 0, flip: false }, convertEmoji: false, transparentBackground: false, saveSize: 'large', saveScale: 1, previewScale: 1, qualityMode: 'compressed', generating: false, generatedImage: '', resultVisible: false },
   onLoad() {
     this.materialsByScene = { body: [], face: [], accessory: [] };
     this.localFileCache = {};
@@ -41,7 +41,7 @@ Page({
   chooseStep(e) {
     const index = e.currentTarget.dataset.index;
     const sceneMap = ['body', 'expression', 'accessory'];
-    this.setData({ currentStep: index, categoryIndex: 0, activeLayer: sceneMap[index] || this.data.activeLayer });
+    this.setData({ currentStep: index, categoryIndex: 0, activeLayer: sceneMap[index] || this.data.activeLayer, previewScale: index === 4 ? this.data.saveScale : 1 });
     const cloudSceneMap = ['body', 'face', 'accessory'];
     if (cloudSceneMap[index]) this.materialsReady.then(() => this.loadSceneImages(cloudSceneMap[index]));
   },
@@ -172,6 +172,122 @@ Page({
   toggleStroke() { this.setData({ textStroke: !this.data.textStroke }); },
   setTextColor(e) { this.setData({ textColor: e.currentTarget.dataset.color }); },
   setStrokeColor(e) { this.setData({ strokeColor: e.currentTarget.dataset.color }); },
+  toggleConvertEmoji() { this.setData({ convertEmoji: !this.data.convertEmoji }); },
+  toggleTransparentBackground() { this.setData({ transparentBackground: !this.data.transparentBackground }); },
+  setSaveSize(e) {
+    const size = e.currentTarget.dataset.size;
+    const scaleMap = { small: 0.6, medium: 0.8, large: 1 };
+    this.setData({ saveSize: size, saveScale: scaleMap[size], previewScale: scaleMap[size] });
+  },
+  setQualityMode(e) { this.setData({ qualityMode: e.currentTarget.dataset.mode }); },
+  loadCanvasImage(canvas, src) {
+    return new Promise((resolve, reject) => {
+      const image = canvas.createImage();
+      image.onload = () => resolve(image);
+      image.onerror = reject;
+      image.src = src;
+    });
+  },
+  async drawImageLayer(canvas, ctx, src, position, transform, baseWidth, baseHeight, size, compositionScale) {
+    if (!src) return;
+    const image = await this.loadCanvasImage(canvas, src);
+    const center = size / 2;
+    const x = center + (position.x / 100 * size - center) * compositionScale;
+    const y = center + (position.y / 100 * size - center) * compositionScale;
+    const width = baseWidth * size * transform.scale * compositionScale;
+    const height = baseHeight * size * transform.scale * compositionScale;
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(transform.rotate * Math.PI / 180);
+    ctx.scale(transform.flip ? -1 : 1, 1);
+    ctx.drawImage(image, -width / 2, -height / 2, width, height);
+    ctx.restore();
+  },
+  drawTextLayer(ctx, size, compositionScale) {
+    if (!this.data.text) return;
+    const center = size / 2;
+    const position = this.data.textPositionData;
+    const transform = this.data.textTransform;
+    const x = center + (position.x / 100 * size - center) * compositionScale;
+    const y = center + (position.y / 100 * size - center) * compositionScale;
+    const fontSize = 0.12 * size * transform.scale * compositionScale;
+    const lines = this.data.text.split('\n');
+    const lineHeight = fontSize * 1.1;
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(transform.rotate * Math.PI / 180);
+    ctx.scale(transform.flip ? -1 : 1, 1);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = `${this.data.textBold ? 800 : 600} ${fontSize}px sans-serif`;
+    ctx.fillStyle = this.data.textColor;
+    ctx.strokeStyle = this.data.strokeColor;
+    ctx.lineWidth = Math.max(1, size * 0.0075);
+    const startY = -(lines.length - 1) * lineHeight / 2;
+    lines.forEach((line, index) => {
+      const lineY = startY + index * lineHeight;
+      if (this.data.textStroke) ctx.strokeText(line, 0, lineY);
+      ctx.fillText(line, 0, lineY);
+    });
+    ctx.restore();
+  },
+  async generateEmoji() {
+    if (!this.data.body && !this.data.expression && !this.data.accessory && !this.data.text) {
+      wx.showToast({ title: '请先添加素材', icon: 'none' });
+      return;
+    }
+    if (this.data.generating) return;
+    this.setData({ generating: true });
+    wx.showLoading({ title: '生成中' });
+    try {
+      const renderSizeMap = { bad: 240, compressed: 360, lossless: 480 };
+      const size = renderSizeMap[this.data.qualityMode];
+      const { node: canvas } = await new Promise((resolve, reject) => {
+        this.createSelectorQuery().select('#exportCanvas').fields({ node: true, size: true }).exec(result => result[0] ? resolve(result[0]) : reject(new Error('canvas unavailable')));
+      });
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, size, size);
+      const transparent = this.data.transparentBackground || this.data.saveSize !== 'large';
+      if (!transparent) {
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, size, size);
+      } else if (!this.data.transparentBackground) {
+        const innerSize = size * this.data.saveScale;
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect((size - innerSize) / 2, (size - innerSize) / 2, innerSize, innerSize);
+      }
+      const scale = this.data.saveScale;
+      await this.drawImageLayer(canvas, ctx, this.data.bodyFileUrl, this.data.bodyPosition, this.data.bodyTransform, 1.3, 1.3, size, scale);
+      await this.drawImageLayer(canvas, ctx, this.data.expressionFileUrl, this.data.expressionPosition, this.data.expressionTransform, 0.225, 0.225, size, scale);
+      await this.drawImageLayer(canvas, ctx, this.data.accessoryFileUrl, this.data.accessoryPosition, this.data.accessoryTransform, 0.21, 0.21, size, scale);
+      this.drawTextLayer(ctx, size, scale);
+      const fileType = transparent || this.data.qualityMode === 'lossless' ? 'png' : 'jpg';
+      const quality = this.data.qualityMode === 'bad' ? 0.35 : this.data.qualityMode === 'compressed' ? 0.6 : 1;
+      const tempFilePath = await new Promise((resolve, reject) => wx.canvasToTempFilePath({ canvas, fileType, quality, destWidth: 480, destHeight: 480, success: result => resolve(result.tempFilePath), fail: reject }));
+      this.setData({ generatedImage: tempFilePath, resultVisible: true });
+    } catch (error) {
+      console.error('generateEmoji failed', error);
+      wx.showToast({ title: '生成失败，请重试', icon: 'none' });
+    } finally {
+      wx.hideLoading();
+      this.setData({ generating: false });
+    }
+  },
+  closeResult() { this.setData({ resultVisible: false }); },
+  saveGeneratedImage() {
+    if (!this.data.generatedImage) return;
+    wx.saveImageToPhotosAlbum({
+      filePath: this.data.generatedImage,
+      success: () => wx.showToast({ title: '已保存到相册', icon: 'success' }),
+      fail: error => {
+        if (error.errMsg && error.errMsg.includes('auth deny')) {
+          wx.showModal({ title: '需要相册权限', content: '请在设置中允许保存图片到相册', success: result => result.confirm && wx.openSetting() });
+        } else wx.showToast({ title: '保存失败', icon: 'none' });
+      }
+    });
+  },
   chooseTextStyle(e) {this.setData({textStyle:e.currentTarget.dataset.index});}, chooseColor(e) {this.setData({textColor:e.currentTarget.dataset.color});}, choosePosition(e) {this.setData({textPosition:e.currentTarget.dataset.position});},
   goProfile() {wx.navigateTo({url:'/pages/profile/profile'});}, saveImage() {wx.showToast({title:'表情已保存',icon:'success'});}, saveToWarehouse() {wx.showToast({title:'已存入表情仓库',icon:'success'});}, share() {wx.showToast({title:'点击右上角分享给好友',icon:'none'});}
 });

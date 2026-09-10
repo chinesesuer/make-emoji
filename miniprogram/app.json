@@ -13,6 +13,11 @@
     "navigationBarTitleText": "云开发 QuickStart",
     "navigationBarTextStyle": "black"
   },
+  "permission": {
+    "scope.writePhotosAlbum": {
+      "desc": "用于将生成的表情图片保存到手机相册"
+    }
+  },
   "sitemapLocation": "sitemap.json",
   "style": "v2",
   "lazyCodeLoading": "requiredComponents"

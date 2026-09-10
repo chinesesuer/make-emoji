@@ -146,6 +146,28 @@ Page({
     this.setData(updates);
   },
   clearText() { this.setData({ text: '', textInput: '', activeLayer: '' }); },
+  clearCanvas() {
+    wx.showModal({
+      title: '提示',
+      content: '确定要清空画布所有内容吗？',
+      cancelText: '取消',
+      confirmText: '确定',
+      confirmColor: '#55c888',
+      success: ({ confirm }) => {
+        if (confirm) this.doClearCanvas();
+      }
+    });
+  },
+  doClearCanvas() {
+    this.setData({
+      body: '', expression: '', accessory: '', text: '', textInput: '',
+      bodyFileUrl: '', expressionFileUrl: '', accessoryFileUrl: '',
+      selectedBody: -1, selectedExpression: -1, selectedAccessory: -1, activeLayer: '',
+      bodyPosition: { x: 50, y: 50 }, expressionPosition: { x: 42, y: 56 }, accessoryPosition: { x: 62, y: 38 }, textPositionData: { x: 50, y: 84 },
+      bodyTransform: { scale: 1, rotate: 0, flip: false }, expressionTransform: { scale: 1, rotate: 0, flip: false }, accessoryTransform: { scale: 1, rotate: 0, flip: false }, textTransform: { scale: 1, rotate: 0, flip: false }
+    });
+    wx.showToast({ title: '画布已清空', icon: 'none' });
+  },
   toggleBold() { this.setData({ textBold: !this.data.textBold }); },
   toggleStroke() { this.setData({ textStroke: !this.data.textStroke }); },
   setTextColor(e) { this.setData({ textColor: e.currentTarget.dataset.color }); },

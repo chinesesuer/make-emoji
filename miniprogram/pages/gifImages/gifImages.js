@@ -2,7 +2,7 @@ Page({
   data: {
     images: [], previewIndex: 0, fps: 5, loop: 0, resolution: 320, resolutionLabel: '320p',
     resolutions: [{ label: '原图', value: 0 }, { label: '240p', value: 240 }, { label: '320p', value: 320 }, { label: '480p', value: 480 }],
-    dragIndex: -1, generating: false, generatingText: '', generatedGif: '', resultVisible: false
+    dragIndex: -1, cropMode: 'contain', targetRatio: 1, previewHeight: 390, generating: false, generatingText: '', generatedGif: '', resultVisible: false
   },
   onUnload() { this.stopPreview(); },
   goBack() { wx.navigateBack(); },
@@ -28,6 +28,19 @@ Page({
     }
     throw lastError || new Error('审核服务暂时不可用');
   },
+  getImageInfo(src) {
+    return new Promise((resolve, reject) => wx.getImageInfo({ src, success: resolve, fail: reject }));
+  },
+  askCrop() {
+    return new Promise(resolve => wx.showModal({
+      title: '图片长宽不一致',
+      content: '是否按第一张图片的长宽比例居中裁剪？选择“不裁剪”将保留完整画面，空白区域会自动留白。',
+      confirmText: '统一裁剪',
+      cancelText: '不裁剪',
+      success: result => resolve(result.confirm ? 'cover' : 'contain'),
+      fail: () => resolve('contain')
+    }));
+  },
   async chooseImages() {
     const available = 20 - this.data.images.length;
     if (available <= 0) return wx.showToast({ title: '最多选择20张', icon: 'none' });
@@ -44,14 +57,24 @@ Page({
         try {
           const check = await this.auditImage(upload.fileID, contentType);
           await wx.cloud.deleteFile({ fileList: [upload.fileID] }).catch(() => {});
-          if (check.success) accepted.push({ id: `${Date.now()}-${i}`, path });
+          if (check.success) {
+            const info = await this.getImageInfo(path);
+            accepted.push({ id: `${Date.now()}-${i}`, path, width: info.width, height: info.height, ratio: info.width / info.height });
+          }
         } catch (error) {
           await wx.cloud.deleteFile({ fileList: [upload.fileID] }).catch(() => {});
           throw error;
         }
       }
       const rejected = result.tempFiles.length - accepted.length;
-      this.setData({ images: this.data.images.concat(accepted), previewIndex: 0 }, () => this.startPreview());
+      const images = this.data.images.concat(accepted);
+      const targetRatio = images.length ? images[0].ratio : 1;
+      const hasDifferentRatios = images.some(item => Math.abs(item.ratio - targetRatio) / targetRatio > 0.01);
+      wx.hideLoading();
+      const cropMode = hasDifferentRatios ? await this.askCrop() : 'contain';
+      // 预览内容宽约 662rpx；统一裁剪时按目标比例反推高度，使预览边界与成品 GIF 一致。
+      const previewHeight = cropMode === 'cover' ? Math.max(180, Math.round(662 / targetRatio + 28)) : 390;
+      this.setData({ images, cropMode, targetRatio, previewHeight, previewIndex: 0 }, () => this.startPreview());
       if (rejected) wx.showModal({ title: '部分图片未通过审核', content: `${rejected} 张图片被微信内容安全接口判定为需复审或存在风险，未加入列表。`, showCancel: false });
     } catch (error) {
       if (!String(error.errMsg || error.message).includes('cancel')) wx.showModal({ title: '审核服务暂时不可用', content: '图片没有被判定为违规。本次是审核接口超时或网络异常，请稍后重试。', showCancel: false });
@@ -68,7 +91,7 @@ Page({
     this.cleanupCloudFiles(removed);
     this.setData({ images, previewIndex: images.length ? Math.min(this.data.previewIndex, images.length - 1) : 0 }, () => this.startPreview());
   },
-  reselect() { this.cleanupCloudFiles(this.data.images); this.stopPreview(); this.setData({ images: [], previewIndex: 0 }); },
+  reselect() { this.cleanupCloudFiles(this.data.images); this.stopPreview(); this.setData({ images: [], previewIndex: 0, cropMode: 'contain', targetRatio: 1, previewHeight: 390 }); },
   startDrag(e) {
     const point = e.touches[0];
     this.dragPoint = { x: point.clientX, y: point.clientY };
@@ -101,16 +124,18 @@ Page({
     return new Promise((resolve, reject) => this.createSelectorQuery().select('#frameCanvas').fields({ node: true, size: true }).exec(r => r[0] ? resolve(r[0].node) : reject(new Error('canvas unavailable'))));
   },
   loadCanvasImage(canvas, src) { return new Promise((resolve, reject) => { const image = canvas.createImage(); image.onload = () => resolve(image); image.onerror = reject; image.src = src; }); },
-  async prepareFrame(canvas, item, size, index) {
-    const info = await wx.getImageInfo({ src: item.path });
+  async prepareFrame(canvas, item, outputWidth, outputHeight, index) {
+    const info = item.width && item.height ? item : await this.getImageInfo(item.path);
     const image = await this.loadCanvasImage(canvas, item.path);
-    canvas.width = size; canvas.height = size;
+    canvas.width = outputWidth; canvas.height = outputHeight;
     const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, size, size);
-    const ratio = Math.min(size / info.width, size / info.height);
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, outputWidth, outputHeight);
+    const ratio = this.data.cropMode === 'cover'
+      ? Math.max(outputWidth / info.width, outputHeight / info.height)
+      : Math.min(outputWidth / info.width, outputHeight / info.height);
     const width = info.width * ratio; const height = info.height * ratio;
-    ctx.drawImage(image, (size - width) / 2, (size - height) / 2, width, height);
-    const path = await new Promise((resolve, reject) => wx.canvasToTempFilePath({ canvas, fileType: 'png', destWidth: size, destHeight: size, success: r => resolve(r.tempFilePath), fail: reject }));
+    ctx.drawImage(image, (outputWidth - width) / 2, (outputHeight - height) / 2, width, height);
+    const path = await new Promise((resolve, reject) => wx.canvasToTempFilePath({ canvas, fileType: 'png', destWidth: outputWidth, destHeight: outputHeight, success: r => resolve(r.tempFilePath), fail: reject }));
     const upload = await wx.cloud.uploadFile({ cloudPath: `gif-frames/${Date.now()}-${index}-${Math.random().toString(36).slice(2)}.png`, filePath: path });
     return upload.fileID;
   },
@@ -121,14 +146,17 @@ Page({
     try {
       const canvas = await this.getCanvas();
       let size = this.data.resolution;
-      if (!size) { const info = await wx.getImageInfo({ src: this.data.images[0].path }); size = Math.min(480, Math.max(info.width, info.height)); }
+      if (!size) { const info = this.data.images[0]; size = Math.min(480, Math.max(info.width, info.height)); }
+      const ratio = this.data.targetRatio || 1;
+      const outputWidth = ratio >= 1 ? size : Math.max(1, Math.round(size * ratio));
+      const outputHeight = ratio >= 1 ? Math.max(1, Math.round(size / ratio)) : size;
       for (let i = 0; i < this.data.images.length; i += 1) {
         wx.showLoading({ title: `准备图片 ${Math.round(i / this.data.images.length * 100)}%`, mask: true });
-        frameIDs.push(await this.prepareFrame(canvas, this.data.images[i], size, i));
+        frameIDs.push(await this.prepareFrame(canvas, this.data.images[i], outputWidth, outputHeight, i));
       }
       wx.showLoading({ title: '云端合成中', mask: true });
       this.setData({ generatingText: '云端合成中…' });
-      const response = await wx.cloud.callFunction({ name: 'gifImages', data: { action: 'generate', fileIDs: frameIDs, width: size, height: size, delay: Math.round(100 / this.data.fps), loop: this.data.loop } });
+      const response = await wx.cloud.callFunction({ name: 'gifImages', data: { action: 'generate', fileIDs: frameIDs, width: outputWidth, height: outputHeight, delay: Math.round(100 / this.data.fps), loop: this.data.loop } });
       if (!response.result || !response.result.success) {
         const result = response.result || {};
         const error = new Error(result.message || '云函数未返回结果');

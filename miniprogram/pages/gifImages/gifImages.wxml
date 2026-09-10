@@ -18,9 +18,10 @@
     </view>
 
     <block wx:else>
-      <view class="preview-card">
-        <image class="preview" src="{{images[previewIndex].path}}" mode="aspectFit"/>
+      <view class="preview-card" style="height:{{previewHeight}}rpx;">
+        <image class="preview" src="{{images[previewIndex].path}}" mode="{{cropMode === 'cover' ? 'aspectFill' : 'aspectFit'}}"/>
         <view class="preview-badge">{{previewIndex + 1}} / {{images.length}}</view>
+        <view wx:if="{{cropMode === 'cover'}}" class="crop-badge">已统一裁剪</view>
       </view>
 
       <view class="card selected-card">

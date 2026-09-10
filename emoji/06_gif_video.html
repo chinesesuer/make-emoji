@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>视频转GIF</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+<body class="bg-slate-200 min-h-screen flex items-center justify-center py-6 font-sans">
+
+<div class="relative bg-white rounded-[56px] border-[14px] border-black shadow-2xl overflow-hidden flex flex-col" style="width:430px;height:932px">
+
+  <!-- 顶部蓝色区 -->
+  <div class="bg-[#5B5FE9] shrink-0 pb-5">
+    <div class="flex items-center justify-between px-9 pt-4 pb-1 text-white">
+      <span class="text-[15px] font-semibold tracking-wide">9:41</span>
+      <div class="flex items-center gap-1.5 text-[13px]">
+        <i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-full text-[16px]"></i>
+      </div>
+    </div>
+    <div class="flex items-center justify-between px-5 pt-2">
+      <button class="w-9 h-9 rounded-full bg-white/20 text-white flex items-center justify-center"><i class="fa-solid fa-chevron-left text-[14px]"></i></button>
+      <h1 class="text-white text-[19px] font-bold">视频转GIF</h1>
+      <div class="flex items-center gap-3 bg-white/20 rounded-full px-4 py-1.5 text-white text-[14px]">
+        <i class="fa-solid fa-ellipsis"></i><span class="w-px h-4 bg-white/40"></span><i class="fa-regular fa-circle"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- 内容 -->
+  <div class="flex-1 bg-slate-100 overflow-y-auto no-scrollbar pb-36">
+    <!-- 视频预览 -->
+    <div class="mx-4 mt-4">
+      <div class="relative bg-slate-900 rounded-2xl aspect-video flex items-center justify-center overflow-hidden">
+        <button class="w-16 h-16 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-white text-[24px]"><i class="fa-solid fa-play ml-1"></i></button>
+        <span class="absolute bottom-3 right-3 text-white/90 text-[11px] bg-black/50 rounded px-1.5 py-0.5">00:12</span>
+        <span class="absolute top-3 left-3 text-white/90 text-[11px] bg-black/50 rounded px-1.5 py-0.5"><i class="fa-solid fa-video mr-1"></i>IMG_2046.mp4</span>
+      </div>
+      <!-- 时间轴裁剪 -->
+      <div class="mt-3 relative h-14 rounded-xl overflow-hidden">
+        <div class="absolute inset-0 flex">
+          <div class="flex-1 bg-[#c7caf5]"></div><div class="flex-1 bg-[#aeb2f0]"></div><div class="flex-1 bg-[#c7caf5]"></div><div class="flex-1 bg-[#aeb2f0]"></div><div class="flex-1 bg-[#c7caf5]"></div>
+        </div>
+        <div class="absolute inset-y-0 left-[10%] right-[20%] border-[3px] border-white rounded-lg bg-[#5B5FE9]/20"></div>
+        <div class="absolute inset-y-1 left-[10%] w-2.5 bg-white rounded-full shadow flex items-center justify-center"><i class="fa-solid fa-grip-lines-vertical text-[8px] text-slate-400"></i></div>
+        <div class="absolute inset-y-1 right-[20%] w-2.5 bg-white rounded-full shadow flex items-center justify-center"><i class="fa-solid fa-grip-lines-vertical text-[8px] text-slate-400"></i></div>
+      </div>
+      <p class="text-center text-[12px] text-slate-400 mt-1.5">已选 0.0s - 7.2s · 共 7.2 秒</p>
+    </div>
+
+    <!-- 参数设置 -->
+    <div class="bg-white rounded-2xl mx-4 mt-4 p-4 shadow-sm space-y-5">
+      <div>
+        <p class="text-[14px] font-bold text-slate-800 mb-2.5">帧率 FPS</p>
+        <div class="flex gap-2">
+          <button class="flex-1 py-2.5 rounded-xl bg-[#5B5FE9] text-white text-[14px] font-bold">12</button>
+          <button class="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-600 text-[14px]">18</button>
+          <button class="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-600 text-[14px]">24</button>
+          <button class="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-600 text-[14px]">30</button>
+        </div>
+      </div>
+      <div>
+        <p class="text-[14px] font-bold text-slate-800 mb-2.5">输出尺寸</p>
+        <div class="flex gap-2">
+          <button class="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-600 text-[14px]">360p</button>
+          <button class="flex-1 py-2.5 rounded-xl bg-[#5B5FE9] text-white text-[14px] font-bold">480p</button>
+          <button class="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-600 text-[14px]">720p</button>
+          <button class="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-600 text-[14px]">原始</button>
+        </div>
+      </div>
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-[14px] font-bold text-slate-800">循环播放</p>
+          <p class="text-[12px] text-slate-400 mt-0.5">关闭后 GIF 只播放一次</p>
+        </div>
+        <div class="w-12 h-7 bg-[#5B5FE9] rounded-full relative"><span class="absolute top-0.5 right-0.5 w-6 h-6 bg-white rounded-full shadow"></span></div>
+      </div>
+    </div>
+
+    <p class="text-center text-[12px] text-slate-400 mt-4">预计输出：480p · 12FPS · 约 2.1MB</p>
+  </div>
+
+  <!-- 底部生成按钮 -->
+  <div class="absolute bottom-0 inset-x-0 bg-white border-t border-slate-100 px-6 pt-4 pb-9 z-10">
+    <button class="w-full py-4 rounded-2xl bg-[#5B5FE9] text-white font-bold text-[16px] shadow-lg shadow-[#5B5FE9]/30"><i class="fa-solid fa-wand-magic-sparkles mr-2"></i>生成 GIF</button>
+  </div>
+</div>
+
+</body>
+</html>

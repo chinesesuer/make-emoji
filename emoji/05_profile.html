@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>个人中心</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+<body class="bg-slate-200 min-h-screen flex items-center justify-center py-6 font-sans">
+
+<div class="relative bg-white rounded-[56px] border-[14px] border-black shadow-2xl overflow-hidden flex flex-col" style="width:430px;height:932px">
+
+  <!-- 顶部蓝色区 -->
+  <div class="bg-[#5B5FE9] shrink-0 pb-5">
+    <div class="flex items-center justify-between px-9 pt-4 pb-1 text-white">
+      <span class="text-[15px] font-semibold tracking-wide">9:41</span>
+      <div class="flex items-center gap-1.5 text-[13px]">
+        <i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-full text-[16px]"></i>
+      </div>
+    </div>
+    <div class="flex items-center justify-between px-6 pt-2">
+      <h1 class="text-white text-[26px] font-extrabold tracking-wide">个人中心</h1>
+      <div class="flex items-center gap-3 bg-white/20 rounded-full px-4 py-1.5 text-white text-[14px]">
+        <i class="fa-solid fa-ellipsis"></i><span class="w-px h-4 bg-white/40"></span><i class="fa-regular fa-circle"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- 内容 -->
+  <div class="flex-1 bg-slate-100 overflow-y-auto no-scrollbar pb-32">
+
+    <!-- 用户信息卡 -->
+    <div class="bg-white rounded-2xl mx-4 mt-4 p-4 shadow-sm flex items-center gap-4">
+      <div class="w-16 h-16 rounded-2xl bg-sky-100 flex items-center justify-center text-[34px]">👦</div>
+      <div class="flex-1">
+        <div class="flex items-center gap-2">
+          <p class="text-[19px] font-extrabold text-slate-800">用户27674544</p>
+          <span class="text-[11px] text-slate-500 bg-slate-100 rounded-md px-2 py-0.5">普通用户</span>
+        </div>
+        <p class="text-[13px] text-slate-400 mt-1">UID: 27674544</p>
+      </div>
+      <a href="10_edit_profile.html" class="text-[14px] text-slate-600">编辑</a>
+    </div>
+
+    <!-- 四宫格入口 -->
+    <div class="bg-white rounded-2xl mx-4 mt-4 py-5 shadow-sm">
+      <div class="grid grid-cols-4">
+        <a href="09_my_creations.html" class="flex flex-col items-center gap-2">
+          <div class="w-14 h-14 rounded-2xl bg-green-500 text-white flex items-center justify-center text-[20px] shadow-md shadow-green-500/25"><i class="fa-solid fa-clapperboard"></i></div>
+          <span class="text-[13px] text-slate-700">我的制作</span>
+        </a>
+        <a href="03_warehouse.html" class="flex flex-col items-center gap-2">
+          <div class="w-14 h-14 rounded-2xl bg-orange-400 text-white flex items-center justify-center text-[20px] shadow-md shadow-orange-400/25"><i class="fa-solid fa-images"></i></div>
+          <span class="text-[13px] text-slate-700">我的收藏</span>
+        </a>
+        <a href="10_edit_profile.html" class="flex flex-col items-center gap-2">
+          <div class="w-14 h-14 rounded-2xl bg-blue-500 text-white flex items-center justify-center text-[20px] shadow-md shadow-blue-500/25"><i class="fa-solid fa-users"></i></div>
+          <span class="text-[13px] text-slate-700">我的邀请</span>
+        </a>
+        <a href="04_more_tools.html" class="flex flex-col items-center gap-2">
+          <div class="w-14 h-14 rounded-2xl bg-rose-500 text-white flex items-center justify-center text-[20px] shadow-md shadow-rose-500/25"><i class="fa-solid fa-video-slash"></i></div>
+          <span class="text-[13px] text-slate-700">免广告</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- 列表项 -->
+    <div class="bg-white rounded-2xl mx-4 mt-4 shadow-sm divide-y divide-slate-100">
+      <a href="04_more_tools.html" class="flex items-center gap-3 px-4 py-4">
+        <div class="w-10 h-10 rounded-xl bg-blue-500 text-white flex items-center justify-center text-[16px]"><i class="fa-solid fa-comment-dots"></i></div>
+        <span class="flex-1 text-[15px] font-semibold text-slate-800">联系我们</span>
+        <span class="text-[13px] text-slate-400">反馈与建议</span>
+        <i class="fa-solid fa-chevron-right text-[12px] text-slate-300"></i>
+      </a>
+      <a href="04_more_tools.html" class="flex items-center gap-3 px-4 py-4">
+        <div class="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center text-[16px]"><i class="fa-solid fa-circle-info"></i></div>
+        <span class="flex-1 text-[15px] font-semibold text-slate-800">关于我们</span>
+        <span class="text-[13px] text-slate-400">v6.6.11</span>
+        <i class="fa-solid fa-chevron-right text-[12px] text-slate-300"></i>
+      </a>
+    </div>
+
+    <p class="text-center text-[13px] text-slate-400 mt-8">感谢您的使用与支持</p>
+  </div>
+
+  <!-- 底部TabBar -->
+  <div class="absolute bottom-0 inset-x-0 bg-white/95 backdrop-blur border-t border-slate-100 pt-2 pb-6 px-1 flex z-10">
+    <a href="01_create.html" class="flex-1 flex flex-col items-center gap-1 text-slate-400">
+      <i class="fa-solid fa-shapes text-[20px]"></i><span class="text-[10px]">制作表情</span>
+    </a>
+    <a href="02_gif_tools.html" class="flex-1 flex flex-col items-center gap-1 text-slate-400">
+      <span class="text-[9px] font-black border-[2.5px] border-current rounded-[5px] px-1 leading-[15px] mt-[3px]">GIF</span><span class="text-[10px]">GIF工具</span>
+    </a>
+    <a href="03_warehouse.html" class="flex-1 flex flex-col items-center gap-1 text-slate-400 relative">
+      <span class="relative"><i class="fa-regular fa-face-smile text-[20px]"></i><span class="absolute -top-0.5 -right-1 w-2 h-2 bg-rose-500 rounded-full"></span></span>
+      <span class="text-[10px]">表情仓库</span>
+    </a>
+    <a href="04_more_tools.html" class="flex-1 flex flex-col items-center gap-1 text-slate-400">
+      <i class="fa-solid fa-table-cells-large text-[19px]"></i><span class="text-[10px]">更多工具</span>
+    </a>
+    <a href="05_profile.html" class="flex-1 flex flex-col items-center gap-1 text-[#5B5FE9]">
+      <i class="fa-solid fa-user text-[19px]"></i><span class="text-[10px] font-semibold">个人中心</span>
+    </a>
+  </div>
+</div>
+
+</body>
+</html>

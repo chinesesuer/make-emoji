@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GIF加文字</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+<body class="bg-slate-200 min-h-screen flex items-center justify-center py-6 font-sans">
+
+<div class="relative bg-white rounded-[56px] border-[14px] border-black shadow-2xl overflow-hidden flex flex-col" style="width:430px;height:932px">
+
+  <!-- 顶部蓝色区 -->
+  <div class="bg-[#5B5FE9] shrink-0 pb-5">
+    <div class="flex items-center justify-between px-9 pt-4 pb-1 text-white">
+      <span class="text-[15px] font-semibold tracking-wide">9:41</span>
+      <div class="flex items-center gap-1.5 text-[13px]">
+        <i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-full text-[16px]"></i>
+      </div>
+    </div>
+    <div class="flex items-center justify-between px-5 pt-2">
+      <button class="w-9 h-9 rounded-full bg-white/20 text-white flex items-center justify-center"><i class="fa-solid fa-chevron-left text-[14px]"></i></button>
+      <h1 class="text-white text-[19px] font-bold">GIF加文字</h1>
+      <div class="flex items-center gap-3 bg-white/20 rounded-full px-4 py-1.5 text-white text-[14px]">
+        <i class="fa-solid fa-ellipsis"></i><span class="w-px h-4 bg-white/40"></span><i class="fa-regular fa-circle"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- 内容 -->
+  <div class="flex-1 bg-slate-100 overflow-y-auto no-scrollbar pb-36">
+    <!-- GIF预览 -->
+    <div class="mx-4 mt-4">
+      <div class="relative bg-white rounded-2xl aspect-video flex items-center justify-center shadow-sm overflow-hidden">
+        <span class="text-[90px]">🐼</span>
+        <span class="absolute bottom-5 text-[20px] font-black text-white tracking-wide" style="text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000">哈哈哈哈</span>
+        <span class="absolute top-3 right-3 text-[11px] bg-black/50 text-white rounded px-1.5 py-0.5">GIF · 12帧</span>
+      </div>
+    </div>
+
+    <!-- 文字编辑 -->
+    <div class="bg-white rounded-2xl mx-4 mt-4 p-4 shadow-sm space-y-5">
+      <div class="flex gap-2">
+        <input type="text" value="哈哈哈哈" class="flex-1 bg-slate-100 rounded-xl px-4 py-3 text-[15px] text-slate-700 outline-none focus:ring-2 focus:ring-[#5B5FE9]/40" placeholder="输入要添加的文字">
+        <button class="bg-[#5B5FE9] text-white rounded-xl px-5 text-[14px] font-semibold">添加</button>
+      </div>
+
+      <div>
+        <p class="text-[13px] text-slate-400 mb-2">热门文案</p>
+        <div class="flex flex-wrap gap-2">
+          <button class="px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 text-[13px]">哈哈哈哈哈</button>
+          <button class="px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 text-[13px]">蚌埠住了</button>
+          <button class="px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 text-[13px]">尊嘟假嘟</button>
+          <button class="px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 text-[13px]">6</button>
+        </div>
+      </div>
+
+      <div>
+        <p class="text-[13px] text-slate-400 mb-2">文字样式</p>
+        <div class="flex gap-2">
+          <button class="px-4 py-2 rounded-xl bg-[#5B5FE9]/10 text-[#5B5FE9] text-[13px] font-semibold border border-[#5B5FE9]/30">白字黑描边</button>
+          <button class="px-4 py-2 rounded-xl bg-slate-100 text-slate-600 text-[13px]">黑底白字</button>
+          <button class="px-4 py-2 rounded-xl bg-slate-100 text-slate-600 text-[13px]">彩色气泡</button>
+        </div>
+      </div>
+
+      <div>
+        <p class="text-[13px] text-slate-400 mb-2">文字颜色</p>
+        <div class="flex gap-3">
+          <button class="w-8 h-8 rounded-full bg-white border border-slate-200 ring-2 ring-offset-2 ring-[#5B5FE9]"></button>
+          <button class="w-8 h-8 rounded-full bg-slate-800"></button>
+          <button class="w-8 h-8 rounded-full bg-rose-500"></button>
+          <button class="w-8 h-8 rounded-full bg-amber-400"></button>
+          <button class="w-8 h-8 rounded-full bg-emerald-500"></button>
+          <button class="w-8 h-8 rounded-full bg-[#5B5FE9]"></button>
+        </div>
+      </div>
+
+      <div>
+        <p class="text-[13px] text-slate-400 mb-2">位置</p>
+        <div class="flex gap-2">
+          <button class="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-600 text-[13px]"><i class="fa-solid fa-arrow-up mr-1"></i>顶部</button>
+          <button class="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-600 text-[13px]"><i class="fa-solid fa-grip-lines mr-1"></i>居中</button>
+          <button class="flex-1 py-2.5 rounded-xl bg-[#5B5FE9]/10 text-[#5B5FE9] text-[13px] font-semibold border border-[#5B5FE9]/30"><i class="fa-solid fa-arrow-down mr-1"></i>底部</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 底部按钮 -->
+  <div class="absolute bottom-0 inset-x-0 bg-white border-t border-slate-100 px-6 pt-4 pb-9 z-10 flex gap-3">
+    <button class="flex-1 py-4 rounded-2xl border-2 border-[#5B5FE9] text-[#5B5FE9] font-bold text-[15px]">应用到全部帧</button>
+    <button class="flex-1 py-4 rounded-2xl bg-[#5B5FE9] text-white font-bold text-[15px] shadow-lg shadow-[#5B5FE9]/30">完成</button>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>登录 · 表情包后台</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+<body class="bg-slate-100 font-sans text-slate-800 flex items-center justify-center min-h-screen">
+
+<div class="w-[1000px] h-[600px] bg-white rounded-3xl shadow-2xl overflow-hidden flex">
+
+  <!-- 左侧品牌区 -->
+  <div class="w-[440px] bg-gradient-to-br from-[#5B5FE9] to-indigo-500 p-12 text-white flex flex-col justify-between relative overflow-hidden">
+    <div class="absolute -top-10 -right-10 text-[180px] opacity-10">🐼</div>
+    <div>
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center text-[20px]"><i class="fa-solid fa-face-laugh-squint"></i></div>
+        <span class="text-[20px] font-extrabold">表情包后台管理系统</span>
+      </div>
+      <p class="mt-10 text-[28px] font-black leading-snug">素材 · 表情<br>工具 · 统计</p>
+      <p class="mt-4 text-white/75 text-[14px] leading-relaxed">一个后台管住小程序全部内容<br>上传即生效，无需重新发版</p>
+    </div>
+    <div class="space-y-3 text-[13px] text-white/85 relative">
+      <p><i class="fa-solid fa-circle-check mr-2"></i>四类素材分 Tab 独立管理</p>
+      <p><i class="fa-solid fa-circle-check mr-2"></i>上下架 / 排序 / 推荐一键切换</p>
+      <p><i class="fa-solid fa-circle-check mr-2"></i>用户作品 AI 风控 + 人工复核</p>
+    </div>
+  </div>
+
+  <!-- 右侧表单 -->
+  <div class="flex-1 px-14 py-16 flex flex-col justify-center">
+    <h2 class="text-[24px] font-extrabold text-slate-800">欢迎回来</h2>
+    <p class="text-[13px] text-slate-400 mt-2">请使用管理员账号登录</p>
+
+    <div class="mt-9 space-y-5">
+      <div>
+        <label class="text-[13px] text-slate-500">账号</label>
+        <div class="relative mt-1.5">
+          <i class="fa-regular fa-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-[14px]"></i>
+          <input value="admin" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-4 py-3.5 text-[14px] outline-none focus:border-[#5B5FE9] focus:bg-white transition">
+        </div>
+      </div>
+      <div>
+        <label class="text-[13px] text-slate-500">密码</label>
+        <div class="relative mt-1.5">
+          <i class="fa-solid fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-[14px]"></i>
+          <input type="password" value="123456" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-11 py-3.5 text-[14px] outline-none focus:border-[#5B5FE9] focus:bg-white transition">
+          <i class="fa-regular fa-eye absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-[14px] cursor-pointer"></i>
+        </div>
+      </div>
+      <div>
+        <label class="text-[13px] text-slate-500">验证码</label>
+        <div class="flex gap-3 mt-1.5">
+          <input value="8 6 2 4" class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-[14px] outline-none focus:border-[#5B5FE9]">
+          <div class="w-32 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-[#5B5FE9] font-black text-[20px] tracking-[6px] select-none">8624</div>
+        </div>
+      </div>
+      <div class="flex items-center justify-between text-[13px]">
+        <label class="flex items-center gap-2 text-slate-500"><input type="checkbox" checked class="w-4 h-4"> 记住我</label>
+        <a href="#" class="text-[#5B5FE9]">忘记密码？</a>
+      </div>
+      <a href="admin_dashboard.html" class="block w-full text-center py-3.5 rounded-xl bg-[#5B5FE9] text-white font-bold text-[15px] shadow-lg shadow-[#5B5FE9]/30 hover:bg-indigo-500 transition">登 录</a>
+    </div>
+
+    <p class="text-center text-[12px] text-slate-300 mt-8">© 2026 表情包小程序 · 仅限内部管理使用</p>
+  </div>
+</div>
+
+</body>
+</html>

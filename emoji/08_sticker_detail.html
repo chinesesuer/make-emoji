@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>表情详情</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+<body class="bg-slate-200 min-h-screen flex items-center justify-center py-6 font-sans">
+
+<div class="relative bg-white rounded-[56px] border-[14px] border-black shadow-2xl overflow-hidden flex flex-col" style="width:430px;height:932px">
+
+  <!-- 顶部蓝色区 -->
+  <div class="bg-[#5B5FE9] shrink-0 pb-5">
+    <div class="flex items-center justify-between px-9 pt-4 pb-1 text-white">
+      <span class="text-[15px] font-semibold tracking-wide">9:41</span>
+      <div class="flex items-center gap-1.5 text-[13px]">
+        <i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-full text-[16px]"></i>
+      </div>
+    </div>
+    <div class="flex items-center justify-between px-5 pt-2">
+      <button class="w-9 h-9 rounded-full bg-white/20 text-white flex items-center justify-center"><i class="fa-solid fa-chevron-left text-[14px]"></i></button>
+      <h1 class="text-white text-[19px] font-bold">表情详情</h1>
+      <div class="flex items-center gap-3 bg-white/20 rounded-full px-4 py-1.5 text-white text-[14px]">
+        <i class="fa-solid fa-ellipsis"></i><span class="w-px h-4 bg-white/40"></span><i class="fa-regular fa-circle"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- 内容 -->
+  <div class="flex-1 bg-slate-100 overflow-y-auto no-scrollbar pb-36">
+    <!-- 大图预览 -->
+    <div class="mx-4 mt-4 bg-white rounded-3xl shadow-sm py-10 flex items-center justify-center">
+      <div class="relative">
+        <span class="text-[120px] leading-none">🐼</span>
+        <span class="absolute -top-2 -right-4 text-[36px] rotate-12">👑</span>
+        <span class="absolute bottom-2 left-1/2 -translate-x-1/2 text-[18px] font-black text-slate-800 bg-white border-2 border-slate-800 rounded-lg px-2 py-0.5 whitespace-nowrap">哈哈哈</span>
+      </div>
+    </div>
+
+    <!-- 信息卡 -->
+    <div class="bg-white rounded-2xl mx-4 mt-4 p-4 shadow-sm">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-[18px] font-extrabold text-slate-800">快乐熊猫</p>
+          <p class="text-[12px] text-slate-400 mt-1">使用 12.6万 · 收藏 3.4万 · 分享 8902</p>
+        </div>
+        <span class="text-[11px] text-amber-600 bg-amber-50 border border-amber-200 rounded-full px-2.5 py-1 font-semibold"><i class="fa-solid fa-fire mr-1"></i>热榜 TOP3</span>
+      </div>
+      <div class="flex items-center gap-3 mt-4 pt-4 border-t border-slate-100">
+        <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-[20px]">🐼</div>
+        <div class="flex-1">
+          <p class="text-[14px] font-bold text-slate-800">熊猫研究所</p>
+          <p class="text-[11px] text-slate-400">发布 128 个作品</p>
+        </div>
+        <button class="bg-[#5B5FE9] text-white text-[13px] font-bold px-4 py-1.5 rounded-full">+ 关注</button>
+      </div>
+    </div>
+
+    <!-- 相似推荐 -->
+    <div class="px-4 mt-5">
+      <div class="flex items-center justify-between mb-3">
+        <p class="text-[15px] font-bold text-slate-700">相似推荐</p>
+        <span class="text-[12px] text-slate-400">换一批 <i class="fa-solid fa-rotate text-[10px]"></i></span>
+      </div>
+      <div class="grid grid-cols-3 gap-3">
+        <a href="08_sticker_detail.html" class="bg-white rounded-2xl aspect-square flex items-center justify-center text-[52px] shadow-sm">🐻</a>
+        <a href="08_sticker_detail.html" class="bg-white rounded-2xl aspect-square flex items-center justify-center text-[52px] shadow-sm">🐼</a>
+        <a href="08_sticker_detail.html" class="bg-white rounded-2xl aspect-square flex items-center justify-center text-[52px] shadow-sm">🐨</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 底部操作栏 -->
+  <div class="absolute bottom-0 inset-x-0 bg-white border-t border-slate-100 px-5 pt-3.5 pb-9 z-10 flex items-center gap-3">
+    <button class="w-13 px-4 py-3.5 rounded-2xl border-2 border-slate-200 text-slate-500 text-[14px] font-semibold"><i class="fa-regular fa-heart mr-1.5"></i>收藏</button>
+    <button class="flex-1 py-3.5 rounded-2xl bg-[#5B5FE9] text-white font-bold text-[15px] shadow-lg shadow-[#5B5FE9]/30"><i class="fa-solid fa-download mr-2"></i>保存到相册</button>
+    <button class="w-12 h-12 rounded-2xl bg-slate-100 text-slate-500 flex items-center justify-center text-[16px]"><i class="fa-solid fa-share-nodes"></i></button>
+  </div>
+</div>
+
+</body>
+</html>

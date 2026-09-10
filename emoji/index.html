@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>表情包小程序 · 原型总览</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<style>
+  .shot{width:336px;height:727px;overflow:hidden;border-radius:44px;background:#000;box-shadow:0 20px 50px -12px rgba(0,0,0,.35);border:10px solid #0b0b0f;position:relative;flex-shrink:0}
+  .shot iframe{width:430px;height:932px;transform:scale(0.78);transform-origin:0 0;border:0;display:block}
+  .label{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:#1e293b;margin-bottom:14px}
+  .label .idx{width:24px;height:24px;border-radius:8px;background:#5B5FE9;color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .badge{font-size:11px;padding:2px 8px;border-radius:999px;font-weight:600}
+</style>
+</head>
+<body class="bg-slate-100 min-h-screen font-sans">
+
+<div class="max-w-[1500px] mx-auto px-10 py-12">
+
+  <!-- 页头 -->
+  <header class="mb-14">
+    <div class="flex items-center gap-4">
+      <div class="w-14 h-14 rounded-2xl bg-[#5B5FE9] flex items-center justify-center text-white text-2xl shadow-lg shadow-[#5B5FE9]/30"><i class="fa-solid fa-face-laugh-squint"></i></div>
+      <div>
+        <h1 class="text-3xl font-black text-slate-900">表情包制作小程序 · 高保真原型总览</h1>
+        <p class="text-slate-500 mt-1.5 text-[15px]">5 大主 Tab + 5 步制作流程 + 二级详情页 · 共 10 个界面 · iPhone 16 Pro Max · 430×932</p>
+      </div>
+    </div>
+    <div class="flex gap-3 mt-6">
+      <span class="text-xs font-semibold px-3 py-1.5 rounded-full bg-[#5B5FE9]/10 text-[#5B5FE9]">主色 #5B5FE9</span>
+      <span class="text-xs font-semibold px-3 py-1.5 rounded-full bg-slate-200 text-slate-600">Tailwind CSS</span>
+      <span class="text-xs font-semibold px-3 py-1.5 rounded-full bg-slate-200 text-slate-600">FontAwesome 6.5</span>
+      <span class="text-xs font-semibold px-3 py-1.5 rounded-full bg-slate-200 text-slate-600">微信小程序导航</span>
+      <span class="text-xs font-semibold px-3 py-1.5 rounded-full bg-slate-200 text-slate-600">制作页支持左右滑动切换</span>
+    </div>
+  </header>
+
+  <!-- 分组 1：五大主Tab -->
+  <section class="mb-20">
+    <div class="flex items-center gap-3 mb-10">
+      <div class="w-1.5 h-9 bg-[#5B5FE9] rounded-full"></div>
+      <div>
+        <h2 class="text-2xl font-bold text-slate-900">五大主 Tab</h2>
+        <p class="text-slate-500 text-sm mt-1">制作表情（含五步滑动子流程） · GIF工具 · 表情仓库 · 更多工具 · 个人中心</p>
+      </div>
+    </div>
+    <div class="flex flex-wrap gap-x-14 gap-y-16">
+      <div>
+        <div class="label"><span class="idx">01</span>制作表情<span class="badge bg-[#5B5FE9]/10 text-[#5B5FE9]">核心流程</span></div>
+        <div class="shot"><iframe src="01_create.html"></iframe></div>
+      </div>
+      <div>
+        <div class="label"><span class="idx">02</span>GIF工具</div>
+        <div class="shot"><iframe src="02_gif_tools.html"></iframe></div>
+      </div>
+      <div>
+        <div class="label"><span class="idx">03</span>表情仓库</div>
+        <div class="shot"><iframe src="03_warehouse.html"></iframe></div>
+      </div>
+      <div>
+        <div class="label"><span class="idx">04</span>更多工具</div>
+        <div class="shot"><iframe src="04_more_tools.html"></iframe></div>
+      </div>
+      <div>
+        <div class="label"><span class="idx">05</span>个人中心</div>
+        <div class="shot"><iframe src="05_profile.html"></iframe></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 分组 2：GIF工具二级页 -->
+  <section class="mb-20">
+    <div class="flex items-center gap-3 mb-10">
+      <div class="w-1.5 h-9 bg-indigo-400 rounded-full"></div>
+      <div>
+        <h2 class="text-2xl font-bold text-slate-900">GIF 工具 · 二级页</h2>
+        <p class="text-slate-500 text-sm mt-1">从工具宫格点击进入的处理流程页</p>
+      </div>
+    </div>
+    <div class="flex flex-wrap gap-x-14 gap-y-16">
+      <div>
+        <div class="label"><span class="idx">06</span>视频转GIF<span class="badge bg-indigo-100 text-indigo-600">时间轴裁剪</span></div>
+        <div class="shot"><iframe src="06_gif_video.html"></iframe></div>
+      </div>
+      <div>
+        <div class="label"><span class="idx">07</span>GIF加文字<span class="badge bg-indigo-100 text-indigo-600">样式编辑</span></div>
+        <div class="shot"><iframe src="07_gif_text.html"></iframe></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 分组 3：仓库与个人 -->
+  <section>
+    <div class="flex items-center gap-3 mb-10">
+      <div class="w-1.5 h-9 bg-violet-400 rounded-full"></div>
+      <div>
+        <h2 class="text-2xl font-bold text-slate-900">仓库与个人</h2>
+        <p class="text-slate-500 text-sm mt-1">表情详情 · 我的制作 · 编辑资料</p>
+      </div>
+    </div>
+    <div class="flex flex-wrap gap-x-14 gap-y-16">
+      <div>
+        <div class="label"><span class="idx">08</span>表情详情<span class="badge bg-violet-100 text-violet-600">收藏/保存/分享</span></div>
+        <div class="shot"><iframe src="08_sticker_detail.html"></iframe></div>
+      </div>
+      <div>
+        <div class="label"><span class="idx">09</span>我的制作<span class="badge bg-violet-100 text-violet-600">作品管理</span></div>
+        <div class="shot"><iframe src="09_my_creations.html"></iframe></div>
+      </div>
+      <div>
+        <div class="label"><span class="idx">10</span>编辑资料</div>
+        <div class="shot"><iframe src="10_edit_profile.html"></iframe></div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="mt-20 pb-10 text-center text-slate-400 text-sm">
+    <p>表情包制作小程序 · 高保真可交互原型 · 页面可直接用于小程序开发参考</p>
+  </footer>
+</div>
+
+</body>
+</html>

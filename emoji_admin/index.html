@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>表情包后台管理系统 · 原型总览</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<style>
+  .shot{width:794px;height:534px;overflow:hidden;border-radius:14px;background:#fff;box-shadow:0 18px 45px -15px rgba(0,0,0,.3);border:1px solid #e2e8f0;flex-shrink:0}
+  .shot iframe{width:1280px;height:860px;transform:scale(0.62);transform-origin:0 0;border:0;display:block}
+  .shot-login{width:800px;height:480px;overflow:hidden;border-radius:14px;background:#fff;box-shadow:0 18px 45px -15px rgba(0,0,0,.3);flex-shrink:0}
+  .shot-login iframe{width:1000px;height:600px;transform:scale(0.8);transform-origin:0 0;border:0;display:block}
+  .label{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:#1e293b;margin-bottom:12px}
+  .label .idx{width:24px;height:24px;border-radius:8px;background:#5B5FE9;color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .badge{font-size:11px;padding:2px 8px;border-radius:999px;font-weight:600}
+</style>
+</head>
+<body class="bg-slate-100 min-h-screen font-sans">
+
+<div class="max-w-[1750px] mx-auto px-10 py-12">
+
+  <header class="mb-14">
+    <div class="flex items-center gap-4">
+      <div class="w-14 h-14 rounded-2xl bg-[#5B5FE9] flex items-center justify-center text-white text-2xl shadow-lg shadow-[#5B5FE9]/30"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+      <div>
+        <h1 class="text-3xl font-black text-slate-900">表情包小程序 · 管理后台原型总览</h1>
+        <p class="text-slate-500 mt-1.5 text-[15px]">配套数据库：emoji_schema.sql（9 张表）· 素材走「数据库 + 对象存储」，小程序不发版即可更新</p>
+      </div>
+    </div>
+    <div class="flex gap-3 mt-6 flex-wrap">
+      <span class="text-xs font-semibold px-3 py-1.5 rounded-full bg-[#5B5FE9]/10 text-[#5B5FE9]">主色 #5B5FE9</span>
+      <span class="text-xs font-semibold px-3 py-1.5 rounded-full bg-slate-200 text-slate-600">桌面端 1280×800</span>
+      <span class="text-xs font-semibold px-3 py-1.5 rounded-full bg-slate-200 text-slate-600">Tailwind CSS</span>
+      <span class="text-xs font-semibold px-3 py-1.5 rounded-full bg-slate-200 text-slate-600">FontAwesome 6.5</span>
+    </div>
+  </header>
+
+  <!-- 分组 1：登录 -->
+  <section class="mb-20">
+    <div class="flex items-center gap-3 mb-10">
+      <div class="w-1.5 h-9 bg-slate-400 rounded-full"></div>
+      <div>
+        <h2 class="text-2xl font-bold text-slate-900">登录</h2>
+        <p class="text-slate-500 text-sm mt-1">管理员入口</p>
+      </div>
+    </div>
+    <div class="flex flex-wrap gap-x-14 gap-y-16">
+      <div>
+        <div class="label"><span class="idx">01</span>后台登录</div>
+        <div class="shot-login"><iframe src="admin_login.html"></iframe></div>
+      </div>
+      <div class="max-w-[700px] pt-8 text-[14px] text-slate-600 space-y-3">
+        <p class="font-bold text-slate-800">推荐的后台技术选型（你现有栈直接复用）</p>
+        <p>· 后端：<b>Django + DRF</b>（你熟悉的栈），素材上传走 <code>ModelViewSet</code> + 对象存储直传</p>
+        <p>· 前端：<b>vue-admin-template + ElementUI</b>（你已有项目，直接加 5 个路由模块）</p>
+        <p>· 存储：腾讯云 COS / 阿里云 OSS + CDN，DB 只存 URL</p>
+        <p>· 缓存：Redis 缓存素材列表，配合 <code>material_package_version</code> 做增量更新</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 分组 2：核心管理模块 -->
+  <section class="mb-20">
+    <div class="flex items-center gap-3 mb-10">
+      <div class="w-1.5 h-9 bg-[#5B5FE9] rounded-full"></div>
+      <div>
+        <h2 class="text-2xl font-bold text-slate-900">核心管理模块</h2>
+        <p class="text-slate-500 text-sm mt-1">对应小程序 5 个 Tab 的内容配置能力</p>
+      </div>
+    </div>
+    <div class="flex flex-wrap gap-x-14 gap-y-16">
+      <div>
+        <div class="label"><span class="idx">02</span>数据概览</div>
+        <div class="shot"><iframe src="admin_dashboard.html"></iframe></div>
+      </div>
+      <div>
+        <div class="label"><span class="idx">03</span>素材管理<span class="badge bg-[#5B5FE9]/10 text-[#5B5FE9]">对应制作页 4 个 Tab</span></div>
+        <div class="shot"><iframe src="admin_materials.html"></iframe></div>
+      </div>
+      <div>
+        <div class="label"><span class="idx">04</span>表情仓库管理</div>
+        <div class="shot"><iframe src="admin_stickers.html"></iframe></div>
+      </div>
+      <div>
+        <div class="label"><span class="idx">05</span>工具配置<span class="badge bg-[#5B5FE9]/10 text-[#5B5FE9]">对应第 2/4 个 Tab</span></div>
+        <div class="shot"><iframe src="admin_tools.html"></iframe></div>
+      </div>
+    </div>
+    <p class="text-[13px] text-slate-500 mt-2">已移除「用户作品审核」模块：本小程序不支持用户投稿/公开作品，用户制作的表情仅保存在本地相册，因此无 UGC 审核链路。</p>
+  </section>
+
+  <!-- 分组 3：数据模型说明 -->
+  <section class="mb-10">
+    <div class="flex items-center gap-3 mb-8">
+      <div class="w-1.5 h-9 bg-emerald-500 rounded-full"></div>
+      <div>
+        <h2 class="text-2xl font-bold text-slate-900">数据模型（emoji_schema.sql）</h2>
+        <p class="text-slate-500 text-sm mt-1">9 张表覆盖小程序全部动态内容</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
+      <table class="w-full text-[13px]">
+        <thead class="text-slate-400 text-left bg-slate-50"><tr>
+          <th class="px-5 py-3 font-normal">数据表</th><th class="py-3 font-normal">作用</th><th class="py-3 font-normal">对应小程序位置</th><th class="py-3 font-normal">后台模块</th>
+        </tr></thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr><td class="px-5 py-3 font-mono text-[#5B5FE9]">emoji_category</td><td>素材分类（熊猫/蘑菇头/圆脸…）</td><td>制作页二级分类</td><td>素材管理</td></tr>
+          <tr><td class="px-5 py-3 font-mono text-[#5B5FE9]">emoji_material</td><td>身体/表情/挂件素材（URL+锚点+缩放）</td><td>选身体 / 选表情 / 选挂件</td><td>素材管理</td></tr>
+          <tr><td class="px-5 py-3 font-mono text-[#5B5FE9]">emoji_text_template</td><td>预设文案与样式</td><td>贴文字</td><td>素材管理 · 文字模板</td></tr>
+          <tr><td class="px-5 py-3 font-mono text-[#5B5FE9]">sticker</td><td>成品表情（使用/收藏/分享数、上下架）</td><td>表情仓库</td><td>表情仓库</td></tr>
+          <tr><td class="px-5 py-3 font-mono text-[#5B5FE9]">tool_config</td><td>GIF工具 / 更多工具 宫格项</td><td>第 2、4 个 Tab</td><td>工具配置</td></tr>
+          <tr><td class="px-5 py-3 font-mono text-[#5B5FE9]">user_work</td><td>用户本地作品 + 图层 JSON（按 openid 隔离，无审核态）</td><td>我的制作</td><td class="text-slate-400">无需后台管理</td></tr>
+          <tr><td class="px-5 py-3 font-mono text-[#5B5FE9]">material_package_version</td><td>素材版本号，前端增量拉取</td><td>启动 / 进入制作页</td><td>自动维护</td></tr>
+          <tr><td class="px-5 py-3 font-mono text-[#5B5FE9]">admin_user / admin_log</td><td>管理员账号与操作审计</td><td>—</td><td>系统设置</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer class="mt-16 pb-10 text-center text-slate-400 text-sm">
+    <p>表情包小程序管理后台 · 高保真原型 · 配合 emoji 文件夹的小程序端原型使用</p>
+  </footer>
+</div>
+
+</body>
+</html>

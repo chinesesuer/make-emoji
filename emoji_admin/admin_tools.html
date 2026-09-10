@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>工具配置 · 表情包后台</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+<body class="bg-slate-100 font-sans text-slate-800">
+<div class="flex h-screen overflow-hidden">
+
+  <aside class="w-60 bg-[#1e2239] text-slate-400 flex flex-col shrink-0">
+    <div class="h-16 flex items-center gap-2.5 px-6 text-white font-bold text-[16px] shrink-0">
+      <div class="w-8 h-8 rounded-lg bg-[#5B5FE9] flex items-center justify-center text-[15px]"><i class="fa-solid fa-face-laugh-squint"></i></div>
+      表情包后台
+    </div>
+    <nav class="flex-1 px-3 py-4 space-y-1 text-[14px]">
+      <a href="admin_dashboard.html" class="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-white/5"><i class="fa-solid fa-gauge w-4"></i>数据概览</a>
+      <a href="admin_materials.html" class="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-white/5"><i class="fa-solid fa-shapes w-4"></i>素材管理</a>
+      <a href="admin_stickers.html" class="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-white/5"><i class="fa-regular fa-face-smile w-4"></i>表情仓库</a>
+      <a href="admin_tools.html" class="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-[#5B5FE9] text-white font-semibold"><i class="fa-solid fa-screwdriver-wrench w-4"></i>工具配置</a>
+      <a href="#" class="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-white/5"><i class="fa-solid fa-chart-line w-4"></i>数据统计</a>
+      <a href="#" class="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-white/5"><i class="fa-solid fa-users w-4"></i>用户管理</a>
+      <a href="#" class="flex items-center gap-3 px-4 py-2.5 rounded-xl hover:bg-white/5"><i class="fa-solid fa-gear w-4"></i>系统设置</a>
+    </nav>
+    <div class="p-4 border-t border-white/10 flex items-center gap-3 shrink-0">
+      <div class="w-9 h-9 rounded-full bg-sky-500 text-white flex items-center justify-center text-[14px] font-bold">管</div>
+      <div class="flex-1"><p class="text-white text-[13px] font-semibold">超级管理员</p><p class="text-[11px] text-slate-500">admin</p></div>
+      <a href="admin_login.html"><i class="fa-solid fa-right-from-bracket text-slate-500 hover:text-white"></i></a>
+    </div>
+  </aside>
+
+  <div class="flex-1 flex flex-col overflow-hidden">
+    <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0">
+      <div class="text-[13px] text-slate-400">首页 / <span class="text-slate-800 font-semibold">工具配置</span></div>
+      <div class="w-8 h-8 rounded-full bg-sky-500 text-white flex items-center justify-center text-[13px] font-bold">管</div>
+    </header>
+
+    <main class="flex-1 overflow-y-auto p-6 space-y-5">
+      <div class="bg-blue-50 border border-blue-100 rounded-xl px-5 py-3 flex items-center gap-3 text-[13px] text-blue-700">
+        <i class="fa-solid fa-circle-info"></i>
+        这里的配置直接决定小程序「GIF工具」和「更多工具」两个 Tab 的宫格展示：拖拽调整顺序 → 保存后小程序端实时生效，无需发版。
+      </div>
+
+      <!-- GIF 工具 -->
+      <div class="bg-white rounded-2xl shadow-sm">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+          <p class="font-bold text-[15px]"><i class="fa-solid fa-film text-[#5B5FE9] mr-2"></i>GIF 工具（小程序第 2 个 Tab）</p>
+          <button class="bg-[#5B5FE9] text-white rounded-lg px-4 py-2 text-[13px] font-semibold shadow-md shadow-[#5B5FE9]/30"><i class="fa-solid fa-plus mr-1.5"></i>新增工具</button>
+        </div>
+        <table class="w-full text-[13px]">
+          <thead class="text-slate-400 text-left bg-slate-50"><tr><th class="px-5 py-3 font-normal w-12">排序</th><th class="py-3 font-normal">图标</th><th class="py-3 font-normal">工具名称</th><th class="py-3 font-normal">标识 code</th><th class="py-3 font-normal">跳转页面</th><th class="py-3 font-normal">标记</th><th class="py-3 font-normal">状态</th><th class="py-3 font-normal">操作</th></tr></thead>
+          <tbody class="divide-y divide-slate-100">
+            <tr class="hover:bg-slate-50"><td class="px-5 py-3"><i class="fa-solid fa-grip text-slate-300 cursor-move"></i></td><td><div class="w-9 h-9 rounded-xl bg-[#5B5FE9] text-white flex items-center justify-center"><i class="fa-solid fa-film"></i></div></td><td class="font-semibold">视频转GIF</td><td class="text-slate-400">video2gif</td><td class="text-slate-400">/pages/gif/video</td><td><span class="text-[11px] bg-rose-50 text-rose-500 px-2 py-0.5 rounded">HOT</span></td><td><button class="text-emerald-500"><i class="fa-solid fa-toggle-on text-[18px]"></i></button></td><td><button class="text-[#5B5FE9] mr-3">编辑</button><button class="text-rose-500">删除</button></td></tr>
+            <tr class="hover:bg-slate-50"><td class="px-5 py-3"><i class="fa-solid fa-grip text-slate-300 cursor-move"></i></td><td><div class="w-9 h-9 rounded-xl bg-[#5B5FE9] text-white flex items-center justify-center"><i class="fa-solid fa-images"></i></div></td><td class="font-semibold">多图转GIF</td><td class="text-slate-400">images2gif</td><td class="text-slate-400">/pages/gif/images</td><td><span class="text-[11px] bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded">NEW</span></td><td><button class="text-emerald-500"><i class="fa-solid fa-toggle-on text-[18px]"></i></button></td><td><button class="text-[#5B5FE9] mr-3">编辑</button><button class="text-rose-500">删除</button></td></tr>
+            <tr class="hover:bg-slate-50"><td class="px-5 py-3"><i class="fa-solid fa-grip text-slate-300 cursor-move"></i></td><td><div class="w-9 h-9 rounded-xl bg-[#5B5FE9] text-white flex items-center justify-center"><i class="fa-solid fa-crop-simple"></i></div></td><td class="font-semibold">GIF裁剪</td><td class="text-slate-400">gif_crop</td><td class="text-slate-400">/pages/gif/crop</td><td>—</td><td><button class="text-emerald-500"><i class="fa-solid fa-toggle-on text-[18px]"></i></button></td><td><button class="text-[#5B5FE9] mr-3">编辑</button><button class="text-rose-500">删除</button></td></tr>
+            <tr class="hover:bg-slate-50"><td class="px-5 py-3"><i class="fa-solid fa-grip text-slate-300 cursor-move"></i></td><td><div class="w-9 h-9 rounded-xl bg-[#5B5FE9] text-white flex items-center justify-center"><i class="fa-solid fa-pen"></i></div></td><td class="font-semibold">GIF加文字</td><td class="text-slate-400">gif_text</td><td class="text-slate-400">/pages/gif/text</td><td>—</td><td><button class="text-emerald-500"><i class="fa-solid fa-toggle-on text-[18px]"></i></button></td><td><button class="text-[#5B5FE9] mr-3">编辑</button><button class="text-rose-500">删除</button></td></tr>
+            <tr class="hover:bg-slate-50 opacity-60"><td class="px-5 py-3"><i class="fa-solid fa-grip text-slate-300 cursor-move"></i></td><td><div class="w-9 h-9 rounded-xl bg-[#5B5FE9] text-white flex items-center justify-center"><i class="fa-solid fa-expand"></i></div></td><td class="font-semibold">GIF改大小</td><td class="text-slate-400">gif_resize</td><td class="text-slate-400">/pages/gif/resize</td><td>—</td><td><button class="text-slate-300"><i class="fa-solid fa-toggle-off text-[18px]"></i></button></td><td><button class="text-[#5B5FE9] mr-3">编辑</button><button class="text-rose-500">删除</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 更多工具 -->
+      <div class="bg-white rounded-2xl shadow-sm">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+          <p class="font-bold text-[15px]"><i class="fa-solid fa-table-cells-large text-[#5B5FE9] mr-2"></i>更多工具（小程序第 4 个 Tab）</p>
+          <button class="bg-[#5B5FE9] text-white rounded-lg px-4 py-2 text-[13px] font-semibold shadow-md shadow-[#5B5FE9]/30"><i class="fa-solid fa-plus mr-1.5"></i>新增工具</button>
+        </div>
+        <table class="w-full text-[13px]">
+          <thead class="text-slate-400 text-left bg-slate-50"><tr><th class="px-5 py-3 font-normal w-12">排序</th><th class="py-3 font-normal">图标</th><th class="py-3 font-normal">工具名称</th><th class="py-3 font-normal">所属分组</th><th class="py-3 font-normal">跳转页面</th><th class="py-3 font-normal">标记</th><th class="py-3 font-normal">状态</th><th class="py-3 font-normal">操作</th></tr></thead>
+          <tbody class="divide-y divide-slate-100">
+            <tr class="hover:bg-slate-50"><td class="px-5 py-3"><i class="fa-solid fa-grip text-slate-300 cursor-move"></i></td><td><div class="w-9 h-9 rounded-xl bg-emerald-500 text-white flex items-center justify-center"><i class="fa-solid fa-compress"></i></div></td><td class="font-semibold">图片压缩</td><td>图片处理</td><td class="text-slate-400">/pages/more/compress</td><td>—</td><td><button class="text-emerald-500"><i class="fa-solid fa-toggle-on text-[18px]"></i></button></td><td><button class="text-[#5B5FE9] mr-3">编辑</button><button class="text-rose-500">删除</button></td></tr>
+            <tr class="hover:bg-slate-50"><td class="px-5 py-3"><i class="fa-solid fa-grip text-slate-300 cursor-move"></i></td><td><div class="w-9 h-9 rounded-xl bg-violet-500 text-white flex items-center justify-center"><i class="fa-solid fa-wand-magic-sparkles"></i></div></td><td class="font-semibold">一键抠图</td><td>图片处理</td><td class="text-slate-400">/pages/more/matte</td><td><span class="text-[11px] bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded">NEW</span></td><td><button class="text-emerald-500"><i class="fa-solid fa-toggle-on text-[18px]"></i></button></td><td><button class="text-[#5B5FE9] mr-3">编辑</button><button class="text-rose-500">删除</button></td></tr>
+            <tr class="hover:bg-slate-50"><td class="px-5 py-3"><i class="fa-solid fa-grip text-slate-300 cursor-move"></i></td><td><div class="w-9 h-9 rounded-xl bg-pink-500 text-white flex items-center justify-center"><i class="fa-solid fa-star-half-stroke"></i></div></td><td class="font-semibold">花字生成</td><td>文字玩法</td><td class="text-slate-400">/pages/more/fancy</td><td>—</td><td><button class="text-emerald-500"><i class="fa-solid fa-toggle-on text-[18px]"></i></button></td><td><button class="text-[#5B5FE9] mr-3">编辑</button><button class="text-rose-500">删除</button></td></tr>
+            <tr class="hover:bg-slate-50"><td class="px-5 py-3"><i class="fa-solid fa-grip text-slate-300 cursor-move"></i></td><td><div class="w-9 h-9 rounded-xl bg-amber-400 text-white flex items-center justify-center"><i class="fa-solid fa-magnifying-glass"></i></div></td><td class="font-semibold">表情包搜索</td><td>热门推荐</td><td class="text-slate-400">/pages/more/search</td><td>—</td><td><button class="text-emerald-500"><i class="fa-solid fa-toggle-on text-[18px]"></i></button></td><td><button class="text-[#5B5FE9] mr-3">编辑</button><button class="text-rose-500">删除</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="flex justify-end">
+        <button class="bg-[#5B5FE9] text-white px-6 py-3 rounded-xl font-semibold shadow-lg shadow-[#5B5FE9]/30"><i class="fa-solid fa-floppy-disk mr-2"></i>保存排序并发布</button>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

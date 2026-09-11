@@ -301,5 +301,6 @@ Page({
   },
   chooseTextStyle(e) {this.setData({textStyle:e.currentTarget.dataset.index});}, chooseColor(e) {this.setData({textColor:e.currentTarget.dataset.color});}, choosePosition(e) {this.setData({textPosition:e.currentTarget.dataset.position});},
   goGifTools() { wx.navigateTo({ url: '/pages/gifTools/gifTools' }); },
+  goMoreTools() { wx.navigateTo({ url: '/pages/moreTools/moreTools' }); },
   goProfile() {wx.navigateTo({url:'/pages/profile/profile'});}, saveImage() {wx.showToast({title:'表情已保存',icon:'success'});}, saveToWarehouse() {wx.showToast({title:'已存入表情仓库',icon:'success'});}, share() {wx.showToast({title:'点击右上角分享给好友',icon:'none'});}
 });

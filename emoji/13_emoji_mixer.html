@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>表情包合成器</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<style>
+  /* 滚动条隐藏：Tailwind 无对应类，微信小程序对应 scroll-view 的 show-scrollbar="{{false}}" */
+  .noscroll::-webkit-scrollbar{display:none}
+  .noscroll{-ms-overflow-style:none;scrollbar-width:none}
+</style>
+</head>
+<body class="bg-slate-200 min-h-screen flex items-center justify-center py-6 font-sans">
+
+<div class="relative bg-white rounded-[56px] border-[14px] border-black shadow-2xl overflow-hidden flex flex-col" style="width:430px;height:932px">
+
+  <!-- 顶部蓝色区 -->
+  <div class="bg-[#5B5FE9] shrink-0 pb-5">
+    <div class="flex items-center justify-between px-9 pt-4 pb-1 text-white">
+      <span class="text-[15px] font-semibold tracking-wide">9:41</span>
+      <div class="flex items-center gap-1.5 text-[13px]">
+        <i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-full text-[16px]"></i>
+      </div>
+    </div>
+    <div class="flex items-center justify-between px-5 pt-2">
+      <a href="04_more_tools.html" class="w-9 h-9 rounded-full bg-white/20 text-white flex items-center justify-center"><i class="fa-solid fa-chevron-left text-[14px]"></i></a>
+      <h1 class="text-white text-[18px] font-bold">表情包合成器</h1>
+      <div class="flex items-center gap-3 bg-white/20 rounded-full px-4 py-1.5 text-white text-[14px]">
+        <i class="fa-solid fa-ellipsis"></i><span class="w-px h-4 bg-white/40"></span><i class="fa-regular fa-circle"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- 内容区（白底，与参考图一致） -->
+  <div class="flex-1 bg-white overflow-y-auto pb-28">
+
+    <!-- 合成操作区：骰子 | 左表情列 | ➕ | 右表情列 | 骰子 -->
+    <div class="flex items-center justify-between px-6 pt-7">
+
+      <!-- 左骰子 -->
+      <button id="diceL" class="w-9 h-9 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center active:scale-90 transition-transform">
+        <i class="fa-solid fa-dice text-[19px]"></i>
+      </button>
+
+      <!-- 左表情列（上下滑动选择，居中项＝当前选中） -->
+      <div id="colL" class="noscroll h-[216px] w-[78px] overflow-y-auto snap-y snap-mandatory"></div>
+
+      <!-- 加号 -->
+      <span class="text-[32px] font-black text-slate-900 select-none leading-none">+</span>
+
+      <!-- 右表情列 -->
+      <div id="colR" class="noscroll h-[216px] w-[78px] overflow-y-auto snap-y snap-mandatory"></div>
+
+      <!-- 右骰子 -->
+      <button id="diceR" class="w-9 h-9 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center active:scale-90 transition-transform">
+        <i class="fa-solid fa-dice text-[19px]"></i>
+      </button>
+    </div>
+
+    <!-- 合成结果 -->
+    <div class="flex items-center justify-center mt-5">
+      <div class="relative w-[252px] h-[252px] flex items-center justify-center">
+
+        <!-- 优先使用 Emoji Kitchen 官方合成图 -->
+        <img id="resultImg" alt="合成表情" class="w-full h-full object-contain hidden">
+
+        <!-- 兜底：左右半脸拼合（无官方合成图时使用） -->
+        <div id="resultFallback" class="relative w-full h-full">
+          <span id="fbL" class="absolute inset-0 flex items-center justify-center text-[228px] leading-none select-none" style="clip-path:inset(0 50% 0 0)">😢</span>
+          <span id="fbR" class="absolute inset-0 flex items-center justify-center text-[228px] leading-none select-none" style="clip-path:inset(0 0 0 50%)">😗</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 操作按钮 -->
+    <div class="flex flex-col items-center gap-3 mt-3">
+      <button id="saveBtn" class="px-7 py-2.5 rounded-lg border border-rose-400/70 text-rose-500 text-[15px] bg-white active:bg-rose-50">保存 emoji</button>
+      <button id="shareBtn" class="px-7 py-2.5 rounded-lg border border-[#07C160]/60 text-[#07C160] text-[15px] bg-white active:bg-emerald-50">分享给朋友</button>
+    </div>
+
+    <p class="text-center text-[12px] text-slate-400 mt-4">上下滑动选择表情 · 点骰子随机生成 3 个</p>
+  </div>
+
+  <!-- 底部TabBar -->
+  <div class="absolute bottom-0 inset-x-0 bg-white/95 backdrop-blur border-t border-slate-100 pt-2 pb-6 px-1 flex z-10">
+    <a href="01_create.html" class="flex-1 flex flex-col items-center gap-1 text-slate-400">
+      <i class="fa-solid fa-shapes text-[20px]"></i><span class="text-[10px]">制作表情</span>
+    </a>
+    <a href="02_gif_tools.html" class="flex-1 flex flex-col items-center gap-1 text-slate-400">
+      <span class="text-[9px] font-black border-[2.5px] border-current rounded-[5px] px-1 leading-[15px] mt-[3px]">GIF</span><span class="text-[10px]">GIF工具</span>
+    </a>
+    <a href="03_warehouse.html" class="flex-1 flex flex-col items-center gap-1 text-slate-400 relative">
+      <span class="relative"><i class="fa-regular fa-face-smile text-[20px]"></i><span class="absolute -top-0.5 -right-1 w-2 h-2 bg-rose-500 rounded-full"></span></span>
+      <span class="text-[10px]">表情仓库</span>
+    </a>
+    <a href="04_more_tools.html" class="flex-1 flex flex-col items-center gap-1 text-[#5B5FE9]">
+      <i class="fa-solid fa-table-cells-large text-[19px]"></i><span class="text-[10px] font-semibold">更多工具</span>
+    </a>
+    <a href="05_profile.html" class="flex-1 flex flex-col items-center gap-1 text-slate-400">
+      <i class="fa-solid fa-user text-[19px]"></i><span class="text-[10px]">个人中心</span>
+    </a>
+  </div>
+
+  <!-- 保存/分享 提示 -->
+  <div id="toast" class="hidden absolute bottom-32 left-1/2 -translate-x-1/2 bg-slate-900/85 text-white text-[13px] px-5 py-2.5 rounded-full z-30 whitespace-nowrap"></div>
+
+</div>
+
+<script>
+  var ITEM_H = 72;
+
+  /* ============ 表情池 ============ */
+  var POOL = ['😀','😂','😍','🥰','😎','🤔','😴','🤯','🥳','😭','😡','🤗','😋','🤪','😇','🥺','😱','🤢','😷','🤠','😵','😆','😉','😊','🙃','😜','😘','😚','😙','😗','😢','😩','😣','😖','😫','🥹'];
+
+  var selL = '😢', selR = '😗';
+  var colL = document.getElementById('colL');
+  var colR = document.getElementById('colR');
+
+  /* ============ 表情列：滚动选择 ============ */
+  // 滚动定位：首屏布局时 scroll-snap 会做一次初始吸附把位置拉回 0，所以要重试直到生效
+  function setScroll(el, top, cb, tries) {
+    tries = tries || 0;
+    el.scrollTop = top;
+    if (Math.abs(el.scrollTop - top) > 1 && tries < 8) {
+      requestAnimationFrame(function () { setScroll(el, top, cb, tries + 1); });
+    } else if (cb) { cb(); }
+  }
+
+  // 平滑滚动到第 i 项；若被 snap 引擎拉回，则强制定位
+  function scrollToItem(el, i) {
+    var top = i * ITEM_H;
+    el.scrollTo({ top: top, behavior: 'smooth' });
+    setTimeout(function () {
+      if (Math.abs(el.scrollTop - top) > 1) {
+        setScroll(el, top, function () { syncSel(el, el._side); });
+      } else {
+        syncSel(el, el._side);
+      }
+    }, 420);
+  }
+
+  // 选中项同步：不依赖 scroll 事件（程序化滚动在部分环境下不派发 scroll）
+  function syncSel(el, side) {
+    var v = colMark(el);
+    if (side === 'L') { selL = v; } else { selR = v; }
+    scheduleResult();
+  }
+
+  function colInit(el, list, idx) {
+    el.innerHTML = '<div class="py-[72px]">' + list.map(function (e) {
+      return '<div class="item h-[72px] flex items-center justify-center text-[42px] leading-none snap-center shrink-0 transition-all duration-200">' + e + '</div>';
+    }).join('') + '</div>';
+    el._items = Array.prototype.slice.call(el.querySelectorAll('.item'));
+    colMark(el);
+    setScroll(el, idx * ITEM_H, function () { syncSel(el, el._side); });
+  }
+
+  // 高亮居中项，返回其 emoji
+  function colMark(el) {
+    var i = Math.round(el.scrollTop / ITEM_H);
+    i = Math.max(0, Math.min(i, el._items.length - 1));
+    el._sel = i;
+    el._items.forEach(function (it, k) {
+      it.classList.toggle('scale-110', k === i);
+      it.classList.toggle('opacity-100', k === i);
+      it.classList.toggle('opacity-40', k !== i);
+    });
+    return el._items[i].textContent.trim();
+  }
+
+  function colBind(el, side) {
+    el._side = side;
+    el.addEventListener('scroll', function () {
+      if (el._raf) { return; }
+      el._raf = requestAnimationFrame(function () {
+        el._raf = null;
+        syncSel(el, side);
+      });
+    });
+    // 点击某一项：滚动到中间并选中
+    el.addEventListener('click', function (e) {
+      var it = e.target.closest('.item');
+      if (!it) { return; }
+      scrollToItem(el, el._items.indexOf(it));
+    });
+  }
+  colBind(colL, 'L');
+  colBind(colR, 'R');
+
+  /* ============ 骰子：随机生成 3 个表情 ============ */
+  function shuffle(a) {
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+  function roll(el, side) {
+    var list = shuffle(POOL.slice()).slice(0, 12);
+    var idx = 4 + Math.floor(Math.random() * 5);   // 随机停在 4~8，保证上下都有内容
+    colInit(el, list, 0);
+    scrollToItem(el, idx);
+  }
+  document.getElementById('diceL').onclick = function () { roll(colL, 'L'); };
+  document.getElementById('diceR').onclick = function () { roll(colR, 'R'); };
+
+  /* ============ 合成结果 ============ */
+  var imgEl = document.getElementById('resultImg');
+  var fbEl  = document.getElementById('resultFallback');
+  var fbL   = document.getElementById('fbL');
+  var fbR   = document.getElementById('fbR');
+  var token = 0;
+  var timer = null;
+
+  // Emoji Kitchen 官方合成图（各批次目录）
+  var DATES = ['20201001', '20210831', '20220506', '20230221'];
+  var BASE = 'https://www.gstatic.com/android/keyboard/emojikitchen/';
+
+  function cp(e) {                       // emoji -> uXXXX-uXXXX
+    var out = [];
+    for (var i = 0; i < e.length; i++) {
+      var c = e.codePointAt(i);
+      if (c > 0xFFFF) { i++; }
+      out.push('u' + c.toString(16).toLowerCase());
+    }
+    return out.join('-');
+  }
+  function url(date, a, b) {
+    var A = cp(a), B = cp(b);
+    return BASE + date + '/' + A + '/' + A + '_' + B + '.png';
+  }
+
+  function scheduleResult() {
+    clearTimeout(timer);
+    timer = setTimeout(updateResult, 180);   // 滚动停稳后再请求
+  }
+
+  function updateResult() {
+    var L = selL, R = selR;
+    var my = ++token;
+    var cands = [];
+    DATES.forEach(function (d) { cands.push(url(d, L, R)); cands.push(url(d, R, L)); });
+
+    (function tryNext(i) {
+      if (my !== token) { return; }
+      if (i >= cands.length) { showFallback(L, R); return; }
+      var probe = new Image();
+      probe.onload  = function () { if (my === token) { showImg(cands[i]); } };
+      probe.onerror = function () { tryNext(i + 1); };
+      probe.src = cands[i];
+    })(0);
+  }
+
+  function showImg(src) {
+    imgEl.src = src;
+    imgEl.classList.remove('hidden');
+    fbEl.classList.add('hidden');
+  }
+  function showFallback(L, R) {
+    fbL.textContent = L;
+    fbR.textContent = R;
+    fbEl.classList.remove('hidden');
+    imgEl.classList.add('hidden');
+  }
+
+  /* ============ 保存 / 分享 ============ */
+  var toast = document.getElementById('toast');
+  function tip(msg) {
+    toast.textContent = msg;
+    toast.classList.remove('hidden');
+    setTimeout(function () { toast.classList.add('hidden'); }, 1500);
+  }
+  document.getElementById('saveBtn').onclick  = function () { tip('已保存到相册（emoji_' + Date.now().toString().slice(-6) + '.png）'); };
+  document.getElementById('shareBtn').onclick = function () { tip('已调起微信分享面板'); };
+
+  /* ============ 初始化（与参考图一致：😩😢😣 ＋ 🤩😗😙 → 泪目亲吻） ============ */
+  colInit(colL, ['😩','😢','😣','😭','🥺','😖','😫','🥹','😰','😥','😔','😞'], 1);
+  colInit(colR, ['🤩','😗','😙','😘','😚','😆','😉','😊','🙃','😜','😋','🤗'], 1);
+  updateResult();
+</script>
+
+</body>
+</html>

@@ -4,7 +4,10 @@
     "pages/gifTools/gifTools",
     "pages/gifImages/gifImages",
     "pages/gifVideo/gifVideo",
+    "pages/gifText/gifText",
     "pages/gifCrop/gifCrop",
+    "pages/moreTools/moreTools",
+    "pages/emojiMixer/emojiMixer",
     "pages/profile/profile",
     "pages/adminLogin/adminLogin",
     "pages/adminMaterials/adminMaterials"

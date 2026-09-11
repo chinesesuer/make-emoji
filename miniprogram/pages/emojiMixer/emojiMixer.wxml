@@ -1,0 +1,45 @@
+<view class="page">
+  <view class="header">
+    <view class="nav">
+      <view class="back" bindtap="goBack">‹</view>
+      <text class="title">表情包合成器</text>
+      <view class="capsule"><text>•••</text><view class="divider"/><view class="circle"/></view>
+    </view>
+  </view>
+
+  <scroll-view class="content" scroll-y="true">
+    <view class="picker-row">
+      <view class="dice" data-side="left" bindtap="roll">⚄</view>
+      <scroll-view class="emoji-column" scroll-y="true" enhanced="true" show-scrollbar="false" scroll-top="{{leftScrollTop}}" bindscroll="onColumnScroll" bindscrollend="onColumnScrollEnd" data-side="left">
+        <view class="column-pad">
+          <view wx:for="{{leftList}}" wx:key="index" class="emoji-item {{leftIndex === index ? 'selected' : ''}}" data-side="left" data-index="{{index}}" bindtap="selectItem">{{item}}</view>
+        </view>
+      </scroll-view>
+      <text class="plus">+</text>
+      <scroll-view class="emoji-column" scroll-y="true" enhanced="true" show-scrollbar="false" scroll-top="{{rightScrollTop}}" bindscroll="onColumnScroll" bindscrollend="onColumnScrollEnd" data-side="right">
+        <view class="column-pad">
+          <view wx:for="{{rightList}}" wx:key="index" class="emoji-item {{rightIndex === index ? 'selected' : ''}}" data-side="right" data-index="{{index}}" bindtap="selectItem">{{item}}</view>
+        </view>
+      </scroll-view>
+      <view class="dice" data-side="right" bindtap="roll">⚄</view>
+    </view>
+
+    <view class="result-wrap">
+      <view class="result-box">
+        <image wx:if="{{candidateSrc}}" class="probe-image {{resultType === 'official' ? 'visible' : ''}}" src="{{candidateSrc}}" mode="aspectFit" data-url="{{candidateSrc}}" bindload="onCandidateLoad" binderror="onCandidateError"/>
+        <view wx:if="{{resultType === 'fallback'}}" class="fallback">
+          <text class="half half-left">{{leftEmoji}}</text>
+          <text class="half half-right">{{rightEmoji}}</text>
+        </view>
+        <view wx:if="{{resultType === 'loading'}}" class="loading"><view class="spinner"/><text>正在合成</text></view>
+      </view>
+    </view>
+
+    <view class="actions">
+      <button class="action save" loading="{{saving}}" bindtap="saveEmoji">save emoji</button>
+      <button class="action share" open-type="share">分享给朋友</button>
+    </view>
+    <view class="tip">上下滑动选择表情 · 点骰子随机生成</view>
+  </scroll-view>
+  <canvas type="2d" id="fallbackCanvas" class="export-canvas"/>
+</view>

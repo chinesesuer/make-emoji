@@ -1,0 +1,54 @@
+<view class="page">
+  <view class="header">
+    <view class="nav">
+      <text class="title">更多工具</text>
+      <view class="capsule"><text>•••</text><view class="divider"/><view class="circle"/></view>
+    </view>
+  </view>
+
+  <scroll-view class="content" scroll-y="true">
+    <view class="mixer-banner" bindtap="openMixer">
+      <view class="banner-icon">⚄</view>
+      <view class="banner-copy"><text class="banner-title">表情包合成器</text><text class="banner-sub">两个表情合成一个新表情 · 掷骰子随机生成</text></view>
+      <text class="chevron">›</text>
+    </view>
+
+    <view class="card">
+      <view class="card-title"><text class="section-icon purple">▣</text>图片处理</view>
+      <view class="grid">
+        <view class="tool" data-name="图片压缩" bindtap="openTool"><view class="tool-icon green">↙</view><text>图片压缩</text></view>
+        <view class="tool" data-name="格式转换" bindtap="openTool"><view class="tool-icon cyan">↔</view><text>格式转换</text></view>
+        <view class="tool" data-name="一键抠图" bindtap="openTool"><view class="tool-icon violet">✦</view><text>一键抠图</text></view>
+        <view class="tool" data-name="九宫格切图" bindtap="openTool"><view class="tool-icon orange">▦</view><text>九宫格切图</text></view>
+      </view>
+    </view>
+
+    <view class="card">
+      <view class="card-title"><text class="section-icon pink">T</text>文字玩法</view>
+      <view class="grid">
+        <view class="tool" data-name="花字生成" bindtap="openTool"><view class="tool-icon pink-bg">☆</view><text>花字生成</text></view>
+        <view class="tool" data-name="文字生图" bindtap="openTool"><view class="tool-icon indigo">▧</view><text>文字生图</text></view>
+        <view class="tool" data-name="竖排文字" bindtap="openTool"><view class="tool-icon teal">↕</view><text>竖排文字</text></view>
+      </view>
+    </view>
+
+    <view class="card">
+      <view class="card-title"><text class="section-icon fire">♨</text>热门推荐</view>
+      <view class="grid">
+        <view class="tool" data-name="表情包搜索" bindtap="openTool"><view class="tool-icon yellow">⌕</view><text>表情包搜索</text></view>
+        <view class="tool" data-name="每日榜单" bindtap="openTool"><view class="tool-icon rose">♛</view><text>每日榜单</text></view>
+        <view class="tool" data-name="制作教程" bindtap="openTool"><view class="tool-icon blue">▤</view><text>制作教程</text></view>
+        <view class="tool" data-name="意见反馈" bindtap="openTool"><view class="tool-icon gray">●</view><text>意见反馈</text></view>
+      </view>
+    </view>
+    <view class="bottom-space"/>
+  </scroll-view>
+
+  <view class="tabbar">
+    <view class="tab" bindtap="goCreate">◆<text>制作表情</text></view>
+    <view class="tab" bindtap="goGifTools">GIF<text>GIF工具</text></view>
+    <view class="tab">☻<text>表情仓库</text></view>
+    <view class="tab active">▦<text>更多工具</text></view>
+    <view class="tab" bindtap="goProfile">♟<text>个人中心</text></view>
+  </view>
+</view>

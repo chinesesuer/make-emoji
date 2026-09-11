@@ -3,8 +3,8 @@ Page({
     video: null,
     crop: null,
     fps: 10,
-    resolutionIndex: 2,
-    resolutions: ['原图', '480px', '320px', '240px'],
+    resolutionIndex: 1,
+    resolutions: ['240px', '320px', '480px', '原图'],
     loop: 0,
     auditing: false,
     converting: false,
@@ -18,6 +18,16 @@ Page({
   },
   extension(path) {
     return ((String(path).match(/\.([a-zA-Z0-9]+)(?:\?|$)/) || [])[1] || 'mp4').toLowerCase();
+  },
+  normalizeDuration(value, fallback = 0) {
+    let duration = Number(value);
+    if (!Number.isFinite(duration) || duration <= 0) duration = Number(fallback) || 0;
+    // 部分微信真机版本的 openVideoEditor 返回毫秒，chooseMedia/getVideoInfo 返回秒。
+    if (duration > 600) duration /= 1000;
+    return duration;
+  },
+  getVideoInfo(path) {
+    return new Promise(resolve => wx.getVideoInfo({ src: path, success: resolve, fail: () => resolve(null) }));
   },
   async chooseVideo() {
     if (this.data.auditing) return;
@@ -40,12 +50,11 @@ Page({
     }
   },
   async prepareVideo(video) {
-    let result = video;
-    if (video.duration > 10) {
-      result = await this.openEditor(video, true);
-      if (!result) return;
-    }
-    if (result.duration > 10.05) {
+    // 无论原视频是否超过 10 秒，都必须先由用户在微信视频编辑器中确认截取。
+    // 只有编辑器导出成功后才会进入上传与内容安全审核流程。
+    const result = await this.openEditor(video, true);
+    if (!result) return;
+    if (result.duration > 10.2) {
       wx.showModal({ title: '视频过长', content: '请将视频截取到 10 秒以内。', showCancel: false });
       return;
     }
@@ -60,15 +69,19 @@ Page({
       }
       wx.openVideoEditor({
         filePath: video.path,
-        success: edited => resolve({
-          ...video,
-          path: edited.tempFilePath || edited.filePath || video.path,
-          thumb: edited.thumbTempFilePath || video.thumb,
-          duration: Number(edited.duration) || Math.min(video.duration, 10),
-          width: Number(edited.width) || video.width,
-          height: Number(edited.height) || video.height,
-          size: Number(edited.size) || video.size
-        }),
+        success: async edited => {
+          const outputPath = edited.tempFilePath || edited.filePath || video.path;
+          const info = await this.getVideoInfo(outputPath);
+          resolve({
+            ...video,
+            path: outputPath,
+            thumb: edited.thumbTempFilePath || video.thumb,
+            duration: this.normalizeDuration(info && info.duration, this.normalizeDuration(edited.duration, video.duration)),
+            width: Number(info && info.width) || Number(edited.width) || video.width,
+            height: Number(info && info.height) || Number(edited.height) || video.height,
+            size: Number(edited.size) || video.size
+          });
+        },
         fail: error => {
           if (!/cancel/i.test(String(error.errMsg || error.message))) wx.showToast({ title: '视频截取失败', icon: 'none' });
           resolve(null);
@@ -79,7 +92,7 @@ Page({
   async trimVideo() {
     const edited = await this.openEditor(this.data.video, false);
     if (!edited) return;
-    if (edited.duration > 10.05) return wx.showToast({ title: '最长只能保留10秒', icon: 'none' });
+    if (edited.duration > 10.2) return wx.showToast({ title: '最长只能保留10秒', icon: 'none' });
     await this.uploadAndAudit(edited);
   },
   async uploadAndAudit(video) {
@@ -139,7 +152,7 @@ Page({
     this.setData({ converting: true });
     wx.showLoading({ title: '正在转换GIF', mask: true });
     try {
-      const resolutionMap = [0, 480, 320, 240];
+      const resolutionMap = [240, 320, 480, 0];
       const response = await wx.cloud.callFunction({
         name: 'gifImages',
         data: {

@@ -23,6 +23,10 @@ Page({
       wx.navigateTo({ url: '/pages/gifImages/gifImages' });
       return;
     }
+    if (e.currentTarget.dataset.name === 'GIF加文字') {
+      wx.navigateTo({ url: '/pages/gifText/gifText' });
+      return;
+    }
     wx.showToast({ title: `${e.currentTarget.dataset.name}即将上线`, icon: 'none' });
   },
   goCreate() {
@@ -30,6 +34,9 @@ Page({
   },
   goProfile() {
     wx.navigateTo({ url: '/pages/profile/profile' });
+  },
+  goMoreTools() {
+    wx.navigateTo({ url: '/pages/moreTools/moreTools' });
   },
   comingSoon() {
     wx.showToast({ title: '功能即将上线', icon: 'none' });

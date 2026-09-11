@@ -81,7 +81,7 @@
     <view class="tab active">◆<text>制作表情</text></view>
     <view class="tab" bindtap="goGifTools">GIF<text>GIF工具</text></view>
     <view class="tab">☻<text>表情仓库</text></view>
-    <view class="tab">▦<text>更多工具</text></view>
+    <view class="tab" bindtap="goMoreTools">▦<text>更多工具</text></view>
     <view class="tab" bindtap="goProfile">♟<text>个人中心</text></view>
   </view>
 

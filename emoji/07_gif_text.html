@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GIF加文字</title>
+<title>添加文字</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
@@ -20,80 +20,233 @@
       </div>
     </div>
     <div class="flex items-center justify-between px-5 pt-2">
-      <button class="w-9 h-9 rounded-full bg-white/20 text-white flex items-center justify-center"><i class="fa-solid fa-chevron-left text-[14px]"></i></button>
-      <h1 class="text-white text-[19px] font-bold">GIF加文字</h1>
+      <a href="02_gif_tools.html" class="w-9 h-9 rounded-full bg-white/20 text-white flex items-center justify-center"><i class="fa-solid fa-chevron-left text-[14px]"></i></a>
+      <h1 class="text-white text-[19px] font-bold">添加文字</h1>
       <div class="flex items-center gap-3 bg-white/20 rounded-full px-4 py-1.5 text-white text-[14px]">
         <i class="fa-solid fa-ellipsis"></i><span class="w-px h-4 bg-white/40"></span><i class="fa-regular fa-circle"></i>
       </div>
     </div>
   </div>
 
-  <!-- 内容 -->
-  <div class="flex-1 bg-slate-100 overflow-y-auto no-scrollbar pb-36">
-    <!-- GIF预览 -->
-    <div class="mx-4 mt-4">
-      <div class="relative bg-white rounded-2xl aspect-video flex items-center justify-center shadow-sm overflow-hidden">
-        <span class="text-[90px]">🐼</span>
-        <span class="absolute bottom-5 text-[20px] font-black text-white tracking-wide" style="text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000">哈哈哈哈</span>
-        <span class="absolute top-3 right-3 text-[11px] bg-black/50 text-white rounded px-1.5 py-0.5">GIF · 12帧</span>
+  <!-- 内容区 -->
+  <div class="flex-1 bg-slate-100 overflow-y-auto pb-40">
+
+    <!-- ============ 状态 A：未选择GIF ============ -->
+    <div id="stateEmpty">
+      <div class="px-4 pt-4">
+        <button id="pickBtn" class="w-full bg-white rounded-2xl border-2 border-dashed border-slate-300 py-14 flex flex-col items-center">
+          <i class="fa-solid fa-pencil text-[62px] text-[#5B5FE9]"></i>
+          <span class="w-7 h-[5px] rounded-full bg-[#5B5FE9] mt-2 self-end mr-9"></span>
+          <p class="text-[17px] font-bold text-slate-800 mt-4">点击选择GIF文件</p>
+        </button>
       </div>
     </div>
 
-    <!-- 文字编辑 -->
-    <div class="bg-white rounded-2xl mx-4 mt-4 p-4 shadow-sm space-y-5">
-      <div class="flex gap-2">
-        <input type="text" value="哈哈哈哈" class="flex-1 bg-slate-100 rounded-xl px-4 py-3 text-[15px] text-slate-700 outline-none focus:ring-2 focus:ring-[#5B5FE9]/40" placeholder="输入要添加的文字">
-        <button class="bg-[#5B5FE9] text-white rounded-xl px-5 text-[14px] font-semibold">添加</button>
-      </div>
+    <!-- ============ 状态 B：已选择GIF ============ -->
+    <div id="stateReady" class="hidden">
 
-      <div>
-        <p class="text-[13px] text-slate-400 mb-2">热门文案</p>
-        <div class="flex flex-wrap gap-2">
-          <button class="px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 text-[13px]">哈哈哈哈哈</button>
-          <button class="px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 text-[13px]">蚌埠住了</button>
-          <button class="px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 text-[13px]">尊嘟假嘟</button>
-          <button class="px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 text-[13px]">6</button>
+      <!-- GIF 预览 -->
+      <div class="bg-white rounded-2xl mx-4 mt-4 p-4 shadow-sm flex justify-center">
+        <div class="relative w-[300px] aspect-video rounded-lg overflow-hidden bg-slate-900">
+          <img src="https://images.unsplash.com/photo-1567767292278-a4f21aa2d36e?auto=format&fit=crop&w=800&q=60" alt="" class="w-full h-full object-cover">
+          <span id="previewText" class="absolute left-1/2 top-[60%] -translate-x-1/2 -translate-y-1/2 text-[26px] font-bold text-white whitespace-nowrap cursor-text">哦哦哦</span>
         </div>
       </div>
+      <p class="text-center text-[12px] text-slate-400 mt-2.5">点击文字进行编辑</p>
 
-      <div>
-        <p class="text-[13px] text-slate-400 mb-2">文字样式</p>
-        <div class="flex gap-2">
-          <button class="px-4 py-2 rounded-xl bg-[#5B5FE9]/10 text-[#5B5FE9] text-[13px] font-semibold border border-[#5B5FE9]/30">白字黑描边</button>
-          <button class="px-4 py-2 rounded-xl bg-slate-100 text-slate-600 text-[13px]">黑底白字</button>
-          <button class="px-4 py-2 rounded-xl bg-slate-100 text-slate-600 text-[13px]">彩色气泡</button>
-        </div>
-      </div>
+      <!-- 文字设置 -->
+      <div class="bg-white rounded-2xl mx-4 mt-3 p-4 shadow-sm">
 
-      <div>
-        <p class="text-[13px] text-slate-400 mb-2">文字颜色</p>
-        <div class="flex gap-3">
-          <button class="w-8 h-8 rounded-full bg-white border border-slate-200 ring-2 ring-offset-2 ring-[#5B5FE9]"></button>
-          <button class="w-8 h-8 rounded-full bg-slate-800"></button>
-          <button class="w-8 h-8 rounded-full bg-rose-500"></button>
-          <button class="w-8 h-8 rounded-full bg-amber-400"></button>
-          <button class="w-8 h-8 rounded-full bg-emerald-500"></button>
-          <button class="w-8 h-8 rounded-full bg-[#5B5FE9]"></button>
-        </div>
-      </div>
+        <!-- 文字内容 -->
+        <p class="text-[15px] font-bold text-slate-800">文字内容</p>
+        <input id="textInput" type="text" value="哦哦哦" class="w-full mt-2.5 bg-slate-100 rounded-lg px-3.5 py-3 text-[15px] text-slate-700 outline-none focus:ring-2 focus:ring-[#5B5FE9]/30">
 
-      <div>
-        <p class="text-[13px] text-slate-400 mb-2">位置</p>
-        <div class="flex gap-2">
-          <button class="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-600 text-[13px]"><i class="fa-solid fa-arrow-up mr-1"></i>顶部</button>
-          <button class="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-600 text-[13px]"><i class="fa-solid fa-grip-lines mr-1"></i>居中</button>
-          <button class="flex-1 py-2.5 rounded-xl bg-[#5B5FE9]/10 text-[#5B5FE9] text-[13px] font-semibold border border-[#5B5FE9]/30"><i class="fa-solid fa-arrow-down mr-1"></i>底部</button>
+        <!-- 文字颜色 -->
+        <p class="text-[15px] font-bold text-slate-800 mt-5">文字颜色</p>
+        <div id="textColors" class="flex gap-[6px] mt-3">
+          <!-- 自定义取色器（底色＝当前颜色） -->
+          <label id="pickerSwatch" class="relative w-[40px] h-[40px] rounded-[13px] bg-white border-2 border-[#5B5FE9] flex items-center justify-center shrink-0 ring-2 ring-[#5B5FE9]/40 cursor-pointer">
+            <i class="fa-solid fa-pencil text-[#5B5FE9] text-[12px]"></i>
+            <input id="colorInput" type="color" value="#ffffff" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+          </label>
+          <button class="sw w-[40px] h-[40px] rounded-[13px] flex items-center justify-center shrink-0" data-color="#000000" style="background:#000000"><i class="fa-solid fa-check text-white text-[15px] hidden"></i></button>
+          <button class="sw w-[40px] h-[40px] rounded-[13px] flex items-center justify-center shrink-0" data-color="#EF4444" style="background:#EF4444"><i class="fa-solid fa-check text-white text-[15px] hidden"></i></button>
+          <button class="sw w-[40px] h-[40px] rounded-[13px] flex items-center justify-center shrink-0" data-color="#F97316" style="background:#F97316"><i class="fa-solid fa-check text-white text-[15px] hidden"></i></button>
+          <button class="sw w-[40px] h-[40px] rounded-[13px] flex items-center justify-center shrink-0" data-color="#FACC15" style="background:#FACC15"><i class="fa-solid fa-check text-slate-800 text-[15px] hidden"></i></button>
+          <button class="sw w-[40px] h-[40px] rounded-[13px] flex items-center justify-center shrink-0" data-color="#22C55E" style="background:#22C55E"><i class="fa-solid fa-check text-white text-[15px] hidden"></i></button>
+          <button class="sw w-[40px] h-[40px] rounded-[13px] flex items-center justify-center shrink-0" data-color="#3B82F6" style="background:#3B82F6"><i class="fa-solid fa-check text-white text-[15px] hidden"></i></button>
+          <button class="sw w-[40px] h-[40px] rounded-[13px] flex items-center justify-center shrink-0" data-color="#A855F7" style="background:#A855F7"><i class="fa-solid fa-check text-white text-[15px] hidden"></i></button>
         </div>
+
+        <!-- 文字样式 -->
+        <p class="text-[15px] font-bold text-slate-800 mt-5">文字样式</p>
+        <div class="flex gap-3 mt-3">
+          <button id="btnBold" class="px-7 py-2.5 rounded-lg bg-slate-100 text-slate-500 text-[14px]">加粗</button>
+          <button id="btnStroke" class="px-7 py-2.5 rounded-lg bg-[#EEF0FE] text-[#5B5FE9] border border-[#5B5FE9]/40 text-[14px] font-semibold">描边</button>
+        </div>
+
+        <!-- 描边颜色 -->
+        <p class="text-[15px] font-bold text-slate-800 mt-5">描边颜色</p>
+        <div id="strokeColors" class="flex gap-2.5 mt-3">
+          <button class="sw2 w-[42px] h-[42px] rounded-[13px] border border-slate-200 flex items-center justify-center shrink-0" data-color="#FFFFFF" style="background:#FFFFFF"><i class="fa-solid fa-check text-slate-800 text-[15px] hidden"></i></button>
+          <button class="sw2 w-[42px] h-[42px] rounded-[13px] flex items-center justify-center shrink-0" data-color="#000000" style="background:#000000"><i class="fa-solid fa-check text-white text-[15px]"></i></button>
+          <button class="sw2 w-[42px] h-[42px] rounded-[13px] flex items-center justify-center shrink-0" data-color="#EF4444" style="background:#EF4444"><i class="fa-solid fa-check text-white text-[15px] hidden"></i></button>
+          <button class="sw2 w-[42px] h-[42px] rounded-[13px] flex items-center justify-center shrink-0" data-color="#FACC15" style="background:#FACC15"><i class="fa-solid fa-check text-slate-800 text-[15px] hidden"></i></button>
+          <button class="sw2 w-[42px] h-[42px] rounded-[13px] flex items-center justify-center shrink-0" data-color="#22C55E" style="background:#22C55E"><i class="fa-solid fa-check text-white text-[15px] hidden"></i></button>
+          <button class="sw2 w-[42px] h-[42px] rounded-[13px] flex items-center justify-center shrink-0" data-color="#3B82F6" style="background:#3B82F6"><i class="fa-solid fa-check text-white text-[15px] hidden"></i></button>
+        </div>
+
+        <!-- 描边粗细 -->
+        <div class="flex items-center justify-between mt-5">
+          <span class="text-[14px] text-slate-500">描边粗细</span>
+          <span id="strokeVal" class="text-[14px] font-semibold text-[#5B5FE9]">3px</span>
+        </div>
+        <input id="strokeRange" type="range" min="0" max="8" value="3" class="w-full mt-3 accent-[#5B5FE9] cursor-pointer">
+
+        <p class="text-center text-[12px] text-slate-400 mt-3">实际字号: 24px ｜ 拖动右下角调整大小</p>
       </div>
     </div>
   </div>
 
-  <!-- 底部按钮 -->
-  <div class="absolute bottom-0 inset-x-0 bg-white border-t border-slate-100 px-6 pt-4 pb-9 z-10 flex gap-3">
-    <button class="flex-1 py-4 rounded-2xl border-2 border-[#5B5FE9] text-[#5B5FE9] font-bold text-[15px]">应用到全部帧</button>
-    <button class="flex-1 py-4 rounded-2xl bg-[#5B5FE9] text-white font-bold text-[15px] shadow-lg shadow-[#5B5FE9]/30">完成</button>
+  <!-- 底部按钮区（已选GIF） -->
+  <div id="barReady" class="hidden absolute bottom-0 inset-x-0 bg-white border-t border-slate-100 px-6 pt-4 pb-9 z-10">
+    <div class="flex gap-3">
+      <button id="reselectBtn" class="flex-1 py-4 rounded-2xl bg-slate-100 text-slate-600 font-bold text-[16px]">重新选择</button>
+      <button id="startBtn" class="flex-[1.5] py-4 rounded-2xl bg-[#5B5FE9] text-white font-bold text-[16px] shadow-lg shadow-[#5B5FE9]/30">开始处理</button>
+    </div>
   </div>
+
+  <!-- 处理中 / 成功 遮罩 -->
+  <div id="mask" class="hidden absolute inset-0 bg-black/40 backdrop-blur-sm z-20 flex items-center justify-center">
+    <div class="bg-white rounded-2xl px-10 py-8 flex flex-col items-center gap-3 w-[220px]">
+      <i id="maskIcon" class="fa-solid fa-spinner fa-spin text-[34px] text-[#5B5FE9]"></i>
+      <p id="maskText" class="text-[14px] font-semibold text-slate-700">正在处理…</p>
+      <p id="maskSub" class="text-[12px] text-slate-400 text-center">共 12 帧 · 全部帧应用文字</p>
+    </div>
+  </div>
+
 </div>
+
+<script>
+  var stateEmpty = document.getElementById('stateEmpty');
+  var stateReady = document.getElementById('stateReady');
+  var barReady   = document.getElementById('barReady');
+  var previewText = document.getElementById('previewText');
+  var textInput  = document.getElementById('textInput');
+  var colorInput = document.getElementById('colorInput');
+  var pickerSwatch = document.getElementById('pickerSwatch');
+
+  var textColor   = '#FFFFFF';   // 文字填充色（默认白色，与参考图一致）
+  var strokeColor = '#000000';   // 描边色
+  var strokeOn    = true;
+  var bold        = false;
+  var strokeW     = 3;
+
+  /* ---------- 状态切换 ---------- */
+  function show(state) {
+    var ready = state === 'ready';
+    stateEmpty.classList.toggle('hidden', ready);
+    stateReady.classList.toggle('hidden', !ready);
+    barReady.classList.toggle('hidden', !ready);
+  }
+  document.getElementById('pickBtn').onclick     = function () { show('ready'); };
+  document.getElementById('reselectBtn').onclick = function () { show('empty'); };
+  previewText.onclick = function () { textInput.focus(); };
+
+  /* ---------- 预览文字渲染 ---------- */
+  // 用 8 方向 text-shadow 模拟描边，粗细可控
+  function outline(w, c) {
+    if (w <= 0) { return 'none'; }
+    var d = [[-1,-1],[0,-1],[1,-1],[-1,0],[1,0],[-1,1],[0,1],[1,1]];
+    return d.map(function (p) { return (p[0] * w) + 'px ' + (p[1] * w) + 'px 0 ' + c; }).join(',');
+  }
+  function render() {
+    previewText.textContent = textInput.value.trim() || '点击输入文字';
+    previewText.style.color = textColor;
+    previewText.style.fontWeight = bold ? '900' : '700';
+    previewText.style.textShadow = strokeOn ? outline(strokeW, strokeColor) : 'none';
+  }
+  textInput.oninput = render;
+
+  /* ---------- 文字颜色 ---------- */
+  var swatches = document.querySelectorAll('#textColors .sw');
+  function markTextColor(el) {
+    pickerSwatch.classList.remove('ring-2', 'ring-[#5B5FE9]/40');
+    swatches.forEach(function (s) { s.querySelector('i').classList.add('hidden'); });
+    if (el) { el.querySelector('i').classList.remove('hidden'); }
+  }
+  swatches.forEach(function (b) {
+    b.onclick = function () {
+      textColor = b.dataset.color;
+      markTextColor(b);
+      render();
+    };
+  });
+  // 取色器：直接调用系统调色板
+  pickerSwatch.onclick = function () { pickerSwatch.classList.add('ring-2', 'ring-[#5B5FE9]/40'); };
+  colorInput.oninput = function () {
+    textColor = colorInput.value;
+    pickerSwatch.style.background = colorInput.value;
+    markTextColor(null);
+    pickerSwatch.classList.add('ring-2', 'ring-[#5B5FE9]/40');
+    render();
+  };
+
+  /* ---------- 描边颜色 ---------- */
+  var swatches2 = document.querySelectorAll('#strokeColors .sw2');
+  swatches2.forEach(function (b) {
+    b.onclick = function () {
+      strokeColor = b.dataset.color;
+      swatches2.forEach(function (s) { s.querySelector('i').classList.add('hidden'); });
+      b.querySelector('i').classList.remove('hidden');
+      render();
+    };
+  });
+
+  /* ---------- 文字样式 ---------- */
+  var btnBold = document.getElementById('btnBold');
+  var btnStroke = document.getElementById('btnStroke');
+  var CHIP_ON  = 'px-7 py-2.5 rounded-lg bg-[#EEF0FE] text-[#5B5FE9] border border-[#5B5FE9]/40 text-[14px] font-semibold';
+  var CHIP_OFF = 'px-7 py-2.5 rounded-lg bg-slate-100 text-slate-500 text-[14px]';
+
+  btnBold.onclick = function () {
+    bold = !bold;
+    btnBold.className = bold ? CHIP_ON : CHIP_OFF;
+    render();
+  };
+  btnStroke.onclick = function () {
+    strokeOn = !strokeOn;
+    btnStroke.className = strokeOn ? CHIP_ON : CHIP_OFF;
+    render();
+  };
+
+  /* ---------- 描边粗细 ---------- */
+  var strokeRange = document.getElementById('strokeRange');
+  strokeRange.oninput = function () {
+    strokeW = +this.value;
+    document.getElementById('strokeVal').textContent = strokeW + 'px';
+    if (strokeW === 0) { strokeOn = false; btnStroke.className = CHIP_OFF; }
+    render();
+  };
+
+  /* ---------- 开始处理 ---------- */
+  var mask = document.getElementById('mask');
+  document.getElementById('startBtn').onclick = function () {
+    mask.classList.remove('hidden');
+    document.getElementById('maskIcon').className = 'fa-solid fa-spinner fa-spin text-[34px] text-[#5B5FE9]';
+    document.getElementById('maskText').textContent = '正在处理…';
+    setTimeout(function () {
+      document.getElementById('maskIcon').className = 'fa-solid fa-circle-check text-[34px] text-emerald-500';
+      document.getElementById('maskText').textContent = '处理成功，已保存到相册';
+      document.getElementById('maskSub').textContent = 'file://gif/20260910_2329.gif';
+      setTimeout(function () { mask.classList.add('hidden'); }, 1400);
+    }, 1800);
+  };
+
+  render();
+  // 支持 #empty / #ready（总览页并排展示用）
+  show(location.hash === '#empty' ? 'empty' : 'ready');
+</script>
 
 </body>
 </html>

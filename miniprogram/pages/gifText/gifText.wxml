@@ -1,0 +1,31 @@
+<view class="page">
+  <view class="header"><view class="nav"><view class="back" bindtap="goBack">‹</view><text>添加文字</text><view class="capsule">•••　◯</view></view></view>
+  <scroll-view class="content" scroll-y enhanced show-scrollbar="false">
+    <view wx:if="{{!gifPath}}" class="empty-wrap">
+      <view class="picker" bindtap="chooseGif"><image src="/images/gif-tools/pen.svg" mode="aspectFit"/><text class="picker-title">点击选择GIF文件</text><text class="picker-sub">支持相册或聊天记录 · 选择后先进行安全审核</text></view>
+    </view>
+    <block wx:else>
+      <view class="preview-card">
+        <movable-area id="stage" class="stage" style="height:{{stageHeight}}rpx">
+          <image class="gif" src="{{gifPath}}" mode="aspectFill"/>
+          <movable-view wx:if="{{text}}" class="text-box" direction="all" x="{{textX}}" y="{{textY}}" scale scale-min="0.5" scale-max="3" scale-value="{{textScale}}" bindchange="moveText" bindscale="scaleText">
+            <text style="color:{{textColor}};font-weight:{{bold ? '900' : '600'}};font-size:{{fontSize}}px;line-height:1.2;{{strokeStyle}}">{{text}}</text>
+            <view class="delete" catchtap="deleteText">×</view><view class="resize">↘</view>
+          </movable-view>
+        </movable-area>
+      </view>
+      <text class="preview-tip">拖动文字调整位置 · 双指或右下角缩放</text>
+      <view class="card">
+        <text class="title">文字内容</text><textarea class="text-input" value="{{text}}" maxlength="100" auto-height placeholder="输入文字，支持换行" bindinput="inputText"/>
+        <text class="title section">文字颜色</text><view class="swatches"><view wx:for="{{colors}}" wx:key="*this" class="swatch {{textColor === item ? 'chosen' : ''}}" style="background:{{item}}" data-color="{{item}}" bindtap="chooseTextColor">{{textColor === item ? '✓' : ''}}</view></view>
+        <text class="title section">文字样式</text><view class="chips"><view class="chip {{bold ? 'active' : ''}}" bindtap="toggleBold">加粗</view><view class="chip {{strokeOn ? 'active' : ''}}" bindtap="toggleStroke">描边</view></view>
+        <text class="title section">描边颜色</text><view class="swatches"><view wx:for="{{strokeColors}}" wx:key="*this" class="swatch {{strokeColor === item ? 'chosen' : ''}}" style="background:{{item}}" data-color="{{item}}" bindtap="chooseStrokeColor">{{strokeColor === item ? '✓' : ''}}</view></view>
+        <view class="range-head"><text>描边粗细</text><text>{{strokeWidth}}px</text></view><slider min="0" max="8" step="1" value="{{strokeWidth}}" activeColor="#5B5FE9" block-color="#5B5FE9" bindchanging="changeStroke" bindchange="changeStroke"/>
+        <view class="range-head"><text>文字大小</text><text>{{fontSize}}px</text></view><slider min="14" max="64" value="{{fontSize}}" activeColor="#5B5FE9" block-color="#5B5FE9" bindchanging="changeFontSize" bindchange="changeFontSize"/>
+      </view><view class="spacer"/>
+    </block>
+  </scroll-view>
+  <view class="bottom"><button wx:if="{{!gifPath}}" class="disabled" disabled>请先选择GIF</button><view wx:else class="actions"><button class="secondary" bindtap="reselect">重新选择</button><button class="primary" loading="{{generating}}" disabled="{{!text || generating}}" bindtap="generate">开始处理</button></view></view>
+  <canvas type="2d" id="textCanvas" class="export-canvas"/>
+  <view wx:if="{{resultVisible}}" class="result-mask"><view class="result-panel"><text class="result-title">GIF 已生成</text><image class="result-image" src="{{generatedGif}}" mode="aspectFit"/><button class="save-button" bindtap="saveResult">保存到相册</button><view class="result-close" bindtap="closeResult">×</view></view></view>
+</view>

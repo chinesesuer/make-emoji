@@ -21,7 +21,7 @@
     <view class="gif-tab" bindtap="goCreate">◆<text>制作表情</text></view>
     <view class="gif-tab active">GIF<text>GIF工具</text></view>
     <view class="gif-tab" bindtap="comingSoon">☻<text>表情仓库</text></view>
-    <view class="gif-tab" bindtap="comingSoon">▦<text>更多工具</text></view>
+    <view class="gif-tab" bindtap="goMoreTools">▦<text>更多工具</text></view>
     <view class="gif-tab" bindtap="goProfile">♟<text>个人中心</text></view>
   </view>
 </view>

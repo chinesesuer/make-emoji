@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DIY表情</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<style>
+  /* 滚动条隐藏：Tailwind 无对应类，微信小程序对应 scroll-view 的 show-scrollbar="{{false}}" */
+  .noscroll::-webkit-scrollbar{display:none}
+  .noscroll{-ms-overflow-style:none;scrollbar-width:none}
+  .ly{position:absolute;background-repeat:no-repeat;pointer-events:none}
+</style>
+</head>
+<body class="bg-slate-200 min-h-screen flex items-center justify-center py-6 font-sans">
+
+<div class="relative bg-white rounded-[56px] border-[14px] border-black shadow-2xl overflow-hidden flex flex-col" style="width:430px;height:932px">
+
+  <!-- 顶部深色沉浸式导航 -->
+  <div class="bg-[#161727] shrink-0 pb-4">
+    <div class="flex items-center justify-between px-9 pt-4 pb-1 text-white">
+      <span class="text-[15px] font-semibold tracking-wide">9:41</span>
+      <div class="flex items-center gap-1.5 text-[13px]">
+        <i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-full text-[16px]"></i>
+      </div>
+    </div>
+    <div class="flex items-center justify-between px-5 pt-2">
+      <a href="04_more_tools.html" class="w-9 h-9 rounded-full bg-white/10 text-white flex items-center justify-center"><i class="fa-solid fa-chevron-left text-[14px]"></i></a>
+      <h1 class="text-white text-[18px] font-bold">表情包合成器</h1>
+      <div class="flex items-center gap-3 bg-white/10 rounded-full px-4 py-1.5 text-white text-[14px]">
+        <i class="fa-solid fa-ellipsis"></i><span class="w-px h-4 bg-white/30"></span><i class="fa-regular fa-circle"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- 内容区 -->
+  <div class="flex-1 bg-white flex flex-col pb-24">
+
+    <!-- 实时预览 -->
+    <div class="flex items-center justify-center pt-4">
+      <div id="preview" class="flex items-center justify-center"></div>
+    </div>
+
+    <!-- 素材宫格（8 列，可上下滚动） -->
+    <div id="grid" class="noscroll h-[236px] overflow-y-auto px-3 mt-2 grid grid-cols-8 gap-x-1 gap-y-1 content-start"></div>
+
+    <!-- 文案提示 -->
+    <p id="hint" class="text-center text-[15px] text-slate-500 mt-3 px-6">好的emoji表情从选择一个脸型开始</p>
+
+    <!-- 分类按钮 -->
+    <div id="cats" class="flex gap-2 px-4 mt-3">
+      <button data-c="0" class="cat flex-1 py-2.5 rounded-xl text-[15px] transition">脸型</button>
+      <button data-c="1" class="cat flex-1 py-2.5 rounded-xl text-[15px] transition">眼睛</button>
+      <button data-c="2" class="cat flex-1 py-2.5 rounded-xl text-[15px] transition">异瞳</button>
+      <button data-c="3" class="cat flex-1 py-2.5 rounded-xl text-[15px] transition">嘴巴</button>
+      <button data-c="4" class="cat flex-1 py-2.5 rounded-xl text-[15px] transition">装饰</button>
+    </div>
+
+    <!-- 操作按钮 -->
+    <div class="flex gap-2 px-4 mt-3">
+      <button id="btnReset" class="flex-1 py-2.5 rounded-xl bg-white border border-slate-200 text-[15px] text-slate-700 active:bg-slate-50">重置</button>
+      <button id="btnUndo"  class="flex-1 py-2.5 rounded-xl bg-white border border-slate-200 text-[15px] text-slate-700 active:bg-slate-50">撤回</button>
+      <button id="btnSave"  class="flex-1 py-2.5 rounded-xl bg-white border border-rose-200 text-[15px] text-rose-500 active:bg-rose-50">保存</button>
+      <button id="btnShare" class="flex-1 py-2.5 rounded-xl bg-white border border-rose-200 text-[15px] text-rose-500 active:bg-rose-50">分享</button>
+    </div>
+  </div>
+
+  <!-- 底部TabBar（合成器页三宫格） -->
+  <div class="absolute bottom-0 inset-x-0 bg-white/95 backdrop-blur border-t border-slate-100 pt-2 pb-6 px-1 flex z-10">
+    <a href="14_diy_emoji.html" class="flex-1 flex flex-col items-center gap-1 text-[#5B5FE9]">
+      <i class="fa-regular fa-face-smile text-[20px]"></i><span class="text-[10px] font-semibold">DIY表情</span>
+    </a>
+    <a href="04_more_tools.html" class="flex-1 flex flex-col items-center gap-1 text-slate-400">
+      <i class="fa-solid fa-table-cells-large text-[19px]"></i><span class="text-[10px]">更多工具</span>
+    </a>
+    <a href="13_emoji_mixer.html" class="flex-1 flex flex-col items-center gap-1 text-slate-400">
+      <i class="fa-solid fa-face-laugh-squint text-[20px]"></i><span class="text-[10px]">表情包合成器</span>
+    </a>
+  </div>
+
+  <!-- 提示 -->
+  <div id="toast" class="hidden absolute bottom-28 left-1/2 -translate-x-1/2 bg-slate-900/85 text-white text-[13px] px-5 py-2.5 rounded-full z-30 whitespace-nowrap"></div>
+
+</div>
+
+<script>
+/* ==================================================================
+   DIY 表情：五层叠加（脸型 → 眼睛 → 异瞳 → 嘴巴 → 装饰）
+
+   素材全部来自 Apple 官方 emoji 字形（assets/apple/，160×160 PNG）：
+     · 脸型 / 异瞳 / 装饰 —— 整张 emoji 直接用
+     · 眼睛 / 嘴巴       —— 按坐标从整张 emoji 里「裁」出五官区域
+   坐标系：200×200 虚拟画布，脸心 (100,100) 半径 80。
+   Apple 的面部 emoji 共用同一套网格，源图 160px 映射到 178 单位、
+   左上角偏移 11，因此「脸型直径」正好等于画布的 160 单位。
+   所有裁剪框已离线按像素分析得出，预览 / 缩略图 / 导出共用同一份数据。
+   ================================================================== */
+
+const ASSET = 'assets/apple/';
+const U = c => ASSET + c + '.png';
+const PART  = 'assets/parts/';
+const P = p => PART + p + '.png';
+
+const S = 178;   // 源图 160px 在 200 画布里的边长
+const O = 11;    // 源图左上角偏移 (200-178)/2
+
+/* 五官落位（源图归一化坐标 → 画布单位） */
+const nx = v => O + v * S;
+const EXL = nx(0.3234), EXR = nx(0.6719), EY = nx(0.4016);
+const MX  = nx(0.4969), MY  = nx(0.6782);
+const PUPIL = 26;   // 异瞳覆盖球直径
+
+/* ---------------- 1. 脸型 ---------------- */
+/* 脸型 = 用户截图里的 10 个形状（T1..T10 顺序）
+   T3(黄绿双拼) 与 T5(蓝金双拼) 在 Apple emoji 中无对应，已用 assets/apple/t3_yg.png / t5_bg.png 自绘 */
+const FACES = [
+  {n:'黄圆',c:'1f7e1'}, {n:'牛脸',c:'1f920'}, {n:'绿底脸',c:'t3_yg'}, {n:'橙圆',c:'1f7e0'},
+  {n:'蓝金球',c:'t5_bg'}, {n:'小恶魔',c:'1f47f'}, {n:'猫咪',c:'1f63d'}, {n:'女生',c:'1f469'},
+  {n:'男生',c:'1f468'}, {n:'宝宝',c:'1f476'}
+];
+/* 这些脸型自带五官（人物/动物脸），叠加 DIY 眼睛嘴巴会出现「双重五官」，预览时需注意 */
+const FACE_NO_FEATURES = new Set(['1f920','1f47f','1f469','1f468','1f476','1f63d']);
+
+/* ---------------- 2. 眼睛（p: 1=可叠异瞳 2=仅右眼可叠 0=不叠） ---------------- */
+const EYES = [
+  {n:'大眼萌',c:'1f603',p:1,l:[0.1962,0.1931,0.3450,0.3450],r:[0.4588,0.1931,0.3450,0.3450]},
+  {n:'豆豆眼',c:'1f642',p:1,l:[0.2194,0.2662,0.2925,0.2925],r:[0.4881,0.2662,0.2925,0.2925]},
+  {n:'弯月笑眼',c:'1f60a',p:0,l:[0.2037,0.2569,0.3175,0.3175],r:[0.4787,0.2600,0.3175,0.3175]},
+  {n:'眯眼熟睡',c:'1f634',p:0,l:[0.1400,0.3150,0.3450,0.3450],r:[0.4994,0.2056,0.3450,0.3450]},
+  {n:'半睁睡眼',c:'1f611',p:0,l:[0.1850,0.2350,0.3362,0.3362],r:[0.4788,0.2350,0.3362,0.3362]},
+  {n:'心心眼',c:'1f60d',p:0,l:[0.1400,0.2306,0.3450,0.3450],r:[0.5150,0.2306,0.3450,0.3450]},
+  {n:'星星眼',c:'1f929',p:0,l:[0.1713,0.2056,0.3450,0.3450],r:[0.4838,0.2056,0.3450,0.3450]},
+  {n:'惊讶眼',c:'1f632',p:1,l:[0.1275,0.1869,0.3450,0.3450],r:[0.5244,0.1869,0.3450,0.3450]},
+  {n:'生气眼',c:'1f620',p:1,l:[0.1850,0.2975,0.3362,0.3362],r:[0.4850,0.2975,0.3362,0.3362]},
+  {n:'单眼眨',c:'1f609',p:2,l:[0.1244,0.2275,0.3450,0.3450],r:[0.5400,0.2806,0.3450,0.3450]},
+  {n:'螺旋晕圈',c:'1f635-200d-1f4ab',p:0,l:[0.1525,0.2431,0.3450,0.3450],r:[0.4994,0.2431,0.3450,0.3450]},
+  {n:'无辜眼',c:'1f97a',p:1,l:[0.1494,0.2119,0.3450,0.3450],r:[0.5056,0.2087,0.3450,0.3450]},
+  {n:'翻白眼',c:'1f644',p:1,l:[0.1119,0.2244,0.3450,0.3450],r:[0.5400,0.2244,0.3450,0.3450]},
+  {n:'叉叉眼',c:'1f635',p:0,l:[0.1462,0.2056,0.3450,0.3450],r:[0.5088,0.2056,0.3450,0.3450]},
+  {n:'斜眼无语',c:'1f612',p:1,l:[0.1025,0.2619,0.3450,0.3450],r:[0.5619,0.2619,0.3450,0.3450]},
+  {n:'泪光眼',c:'1f622',p:1,l:[0.1338,0.2338,0.3450,0.3450],r:[0.5213,0.2338,0.3450,0.3450]},
+  {n:'恶魔眼',c:'1f608',p:1,l:[0.1525,0.2056,0.3450,0.3450],r:[0.4963,0.2056,0.3450,0.3450]},
+  {n:'害羞眼',c:'1f633',p:1,l:[0.1119,0.2056,0.3450,0.3450],r:[0.5369,0.2056,0.3450,0.3450]},
+  {n:'疯狂眼',c:'1f92a',p:1,l:[0.1588,0.2588,0.3450,0.3450],r:[0.5181,0.2056,0.3450,0.3450]},
+  {n:'派对眼',c:'1f973',p:0,l:[0.1431,0.2369,0.3450,0.3450],r:[0.5150,0.2369,0.3450,0.3450]},
+  {n:'爱意眼',c:'1f970',p:1,l:[0.1431,0.2369,0.3450,0.3450],r:[0.5181,0.2056,0.3450,0.3450]},
+  {n:'小丑眼',c:'1f921',p:1,l:[0.1806,0.2056,0.3450,0.3450],r:[0.4713,0.2056,0.3450,0.3450]},
+  {n:'财迷眼',c:'1f911',p:1,l:[0.1338,0.2056,0.3450,0.3450],r:[0.5181,0.2056,0.3450,0.3450]},
+  {n:'哭哭眼',c:'1f62d',p:0,l:[0.1400,0.2400,0.3450,0.3450],r:[0.5119,0.2400,0.3450,0.3450]},
+  {n:'困困眼',c:'1f971',p:0,l:[0.1806,0.2306,0.3450,0.3450],r:[0.4713,0.2306,0.3450,0.3450]},
+  {n:'亲亲眼',c:'1f617',p:1,l:[0.2319,0.2725,0.2737,0.2737],r:[0.4913,0.2725,0.2737,0.2737]},
+  {n:'惊恐眼',c:'1f631',p:1,l:[0.1306,0.2244,0.3450,0.3450],r:[0.5181,0.2244,0.3450,0.3450]},
+  {n:'酸爽眼',c:'1f922',p:0,l:[0.1275,0.1837,0.3450,0.3450],r:[0.5275,0.1837,0.3450,0.3450]},
+  {n:'愉悦眼',c:'1f60b',p:0,l:[0.1944,0.2663,0.2987,0.2987],r:[0.4975,0.2663,0.2987,0.2987]},
+  {n:'忧郁眼',c:'1f641',p:1,l:[0.1881,0.2412,0.3175,0.3175],r:[0.4944,0.2412,0.3175,0.3175]}
+];
+
+/* ---------------- 3. 异瞳（覆盖在瞳孔上的彩色瞳） ---------------- */
+const PUPILS = [
+  {n:'墨黑',c:'26ab'}, {n:'白银',c:'1f315'}, {n:'樱桃红',c:'1f534'}, {n:'活力橙',c:'1f7e0'},
+  {n:'柠檬黄',c:'1f7e1'}, {n:'青草绿',c:'1f7e2'}, {n:'天空蓝',c:'1f535'}, {n:'神秘紫',c:'1f7e3'},
+  {n:'奶茶棕',c:'1f7e4'}, {n:'星星瞳',c:'2b50'}, {n:'爱心瞳',c:'2764-fe0f'}, {n:'蓝心瞳',c:'1f499'},
+  {n:'紫心瞳',c:'1f49c'}, {n:'绿心瞳',c:'1f49a'}, {n:'黄心瞳',c:'1f49b'}, {n:'写实瞳',c:'1f441-fe0f'}
+];
+
+/* ---------------- 4. 嘴巴 ---------------- */
+const MOUTHS = [
+  {n:'微笑',c:'1f642',m:[0.2947,0.6135,0.4168,0.1417]},
+  {n:'抿嘴',c:'1f610',m:[0.2447,0.5948,0.5105,0.0917]},
+  {n:'开怀大笑',c:'1f600',m:[0.2135,0.5510,0.5668,0.3105]},
+  {n:'咧嘴露齿',c:'1f601',m:[0.2135,0.5510,0.5668,0.3105]},
+  {n:'吐舌',c:'1f61b',m:[0.2135,0.4948,0.5668,0.3667]},
+  {n:'惊讶O',c:'1f62e',m:[0.3697,0.5760,0.2542,0.2480]},
+  {n:'小圆嘴',c:'1f617',m:[0.4822,0.5885,0.1668,0.2667]},
+  {n:'坏笑',c:'1f60f',m:[0.2135,0.4948,0.5668,0.3355]},
+  {n:'波浪嘴',c:'1f974',m:[0.2135,0.4948,0.5668,0.2542]},
+  {n:'大哭',c:'1f62d',m:[0.2135,0.4948,0.5668,0.3667]},
+  {n:'撇嘴',c:'1f641',m:[0.2760,0.6260,0.4542,0.1417]},
+  {n:'亲吻',c:'1f618',m:[0.3010,0.4948,0.4793,0.3667]},
+  {n:'流口水',c:'1f924',m:[0.2635,0.6510,0.4667,0.2105]},
+  {n:'长舌',c:'1f61d',m:[0.2135,0.4948,0.5668,0.3667]},
+  {n:'龇牙',c:'1f62c',m:[0.2135,0.5260,0.5668,0.2418]},
+  {n:'无语',c:'1f611',m:[0.2447,0.5948,0.5105,0.0917]},
+  {n:'舔嘴',c:'1f60b',m:[0.2135,0.5573,0.5668,0.2667]},
+  {n:'纠结',c:'1f616',m:[0.2322,0.4948,0.5355,0.3543]},
+  {n:'爆粗',c:'1f92c',m:[0.2135,0.4948,0.5668,0.3667]},
+  {n:'咆哮',c:'1f631',m:[0.2135,0.4948,0.5668,0.3667]},
+  {n:'呕吐',c:'1f92e',m:[0.2135,0.4948,0.5668,0.3667]},
+  {n:'拉链嘴',c:'1f910',m:[0.2135,0.5573,0.5668,0.3042]},
+  {n:'喷嚏',c:'1f927',m:[0.2510,0.4948,0.5230,0.3667]},
+  {n:'沉思',c:'1f62f',m:[0.2572,0.4948,0.4855,0.3230]},
+  {n:'恶心',c:'1f922',m:[0.2823,0.5260,0.4355,0.1980]},
+  {n:'捂嘴',c:'1f92d',m:[0.2198,0.5323,0.5543,0.3292]},
+  {n:'发烧',c:'1f975',m:[0.2135,0.4948,0.5668,0.3667]},
+  {n:'委屈',c:'1f97a',m:[0.2135,0.4948,0.5668,0.3417]}
+];
+
+/* ---------------- 5. 装饰 ---------------- */
+const SLOT = {
+  halo:{x:100,y:14,s:64},   topL:{x:34,y:40,s:46},   topR:{x:166,y:40,s:46},
+  eyeC:{x:100,y:80,s:80},   leftMid:{x:24,y:118,s:44},rightMid:{x:176,y:118,s:44},
+  bottomC:{x:100,y:178,s:48},bottomL:{x:46,y:172,s:44},bottomR:{x:154,y:172,s:44}
+};
+const DECOS = [
+  {n:'皇冠',c:'1f451',s:'halo'},   {n:'礼帽',c:'1f3a9',s:'halo'},   {n:'学士帽',c:'1f393',s:'halo'},
+  {n:'蝴蝶结',c:'1f380',s:'halo'}, {n:'彩虹',c:'1f308',s:'halo'},   {n:'闪光星',c:'1f31f',s:'halo'},
+  {n:'樱花',c:'1f338',s:'topL'},   {n:'四叶草',c:'1f340',s:'topL'}, {n:'火焰',c:'1f525',s:'topL'},
+  {n:'闪电',c:'26a1',s:'topL'},    {n:'星星',c:'2b50',s:'topR'},    {n:'闪光',c:'2728',s:'topR'},
+  {n:'爱心',c:'2764-fe0f',s:'topR'},{n:'橙心',c:'1f9e1',s:'topR'},  {n:'心碎',c:'1f494',s:'topR'},
+  {n:'汗滴',c:'1f4a7',s:'topR'},   {n:'大汗',c:'1f4a6',s:'topR'},   {n:'困意',c:'1f4a4',s:'topR'},
+  {n:'生气',c:'1f4a2',s:'topR'},   {n:'疑问',c:'2753',s:'topR'},    {n:'惊叹',c:'2757',s:'topR'},
+  {n:'飞吻',c:'1f48b',s:'topR'},   {n:'音符',c:'1f3b6',s:'topL'},   {n:'眩晕',c:'1f4ab',s:'topR'},
+  {n:'戒指',c:'1f48d',s:'leftMid'},{n:'比耶',c:'270c-fe0f',s:'leftMid'},{n:'比心',c:'1faf0',s:'rightMid'},
+  {n:'耍帅',c:'1f919',s:'rightMid'},{n:'点赞',c:'1f44d',s:'rightMid'},{n:'鼓掌',c:'1f44f',s:'rightMid'},
+  {n:'挥手',c:'1f44b',s:'rightMid'},{n:'举拳',c:'270a',s:'leftMid'},
+  {n:'举手',c:'1f64c',s:'bottomC'},{n:'握手',c:'1f91d',s:'bottomC'},{n:'祈祷',c:'1f64f',s:'bottomC'},
+  {n:'手掌',c:'1f932',s:'bottomC'},{n:'糖果',c:'1f36d',s:'bottomL'},{n:'爪印',c:'1f43e',s:'bottomL'},
+  {n:'泡泡',c:'1fae7',s:'bottomL'},{n:'卷卷',c:'27b0',s:'bottomL'}, {n:'礼物',c:'1f381',s:'bottomR'},
+  {n:'花束',c:'1f490',s:'bottomR'},{n:'拉炮',c:'1f389',s:'bottomR'},{n:'彩球',c:'1f38a',s:'bottomR'},
+  {n:'墨镜',c:'1f576-fe0f',s:'eyeC'},{n:'眼镜',c:'1f453',s:'eyeC'}, {n:'100分',c:'1f4af',s:'halo'}
+];
+
+/* ---------------- 状态 ---------------- */
+const state = { face:0, eyes:0, pupil:0, mouth:0, deco:[] };
+const history = [];
+let cur = 0;
+
+const CATS = [
+  { name:'脸型', hint:'好的emoji表情从选择一个脸型开始' },
+  { name:'眼睛', hint:'眼睛是心灵的窗户' },
+  { name:'异瞳', hint:'异色双瞳，一眼万年的灵魂' },
+  { name:'嘴巴', hint:'笑口常开' },
+  { name:'装饰', hint:'装饰当然是越多越好' }
+];
+
+/* ==================================================================
+   图层描述：预览 / 缩略图 / 导出 PNG 三处共用，保证所见即所得
+   每个图层都用同一套参数：{ src, x, y, w, h }，直接把图片贴在画布坐标上。
+     · 脸型 / 异瞳 / 装饰 —— 整张 emoji（assets/apple/）
+     · 眼睛 / 嘴巴       —— 已抠成透明底的局部 PNG（assets/parts/{c}__l|r|m.png）
+       这些 part 文件由 .tmp/parts.py 用「区域生长去背景」生成，不再带黄色脸底色，
+       因此叠到任意脸型上都不会出现方形的黄色色块。
+   统一渲染路径：img 与 part 只是 src 不同，定位逻辑完全一致。
+   ================================================================== */
+function specs(st){
+  const out = [];
+  const faceObj = (st.face != null) ? FACES[st.face] : null;
+  if (faceObj) out.push({src:U(faceObj.c), x:O, y:O, w:S, h:S});
+
+  /* 自带五官的脸型（人物/动物）不再叠加眼睛/嘴巴/异瞳，否则会出现双重五官 */
+  const baseHasFeatures = !!(faceObj && FACE_NO_FEATURES.has(faceObj.c));
+
+  if (!baseHasFeatures){
+    const eye = (st.eyes != null) ? EYES[st.eyes] : null;
+    if (eye){
+      out.push({src:P(eye.c + '__l'), x:EXL - eye.l[2] * S / 2, y:EY - eye.l[3] * S / 2, w:eye.l[2] * S, h:eye.l[3] * S});
+      out.push({src:P(eye.c + '__r'), x:EXR - eye.r[2] * S / 2, y:EY - eye.r[3] * S / 2, w:eye.r[2] * S, h:eye.r[3] * S});
+    }
+    if (eye && eye.p && st.pupil != null && PUPILS[st.pupil]){
+      const p = PUPILS[st.pupil].c;
+      if (eye.p !== 2) out.push({src:U(p), x:EXL - PUPIL / 2, y:EY - PUPIL / 2, w:PUPIL, h:PUPIL});
+      out.push({src:U(p), x:EXR - PUPIL / 2, y:EY - PUPIL / 2, w:PUPIL, h:PUPIL});
+    }
+    if (st.mouth != null && MOUTHS[st.mouth]){
+      const m = MOUTHS[st.mouth];
+      out.push({src:P(m.c + '__m'), x:MX - m.m[2] * S / 2, y:MY - m.m[3] * S / 2, w:m.m[2] * S, h:m.m[3] * S});
+    }
+  }
+  (st.deco || []).forEach(function (i){
+    const d = DECOS[i]; if (!d) return;
+    const sl = SLOT[d.s];
+    out.push({src:U(d.c), x:sl.x - sl.s / 2, y:sl.y - sl.s / 2, w:sl.s, h:sl.s});
+  });
+  return out;
+}
+
+/* ---------------- 渲染：整块 200×200 图层栈 ---------------- */
+function stackHTML(st){
+  return specs(st).map(function (l){
+    return `<i class="ly" style="left:${l.x}px;top:${l.y}px;width:${l.w}px;height:${l.h}px;` +
+           `background-image:url(${l.src});background-size:${l.w}px ${l.h}px"></i>`;
+  }).join('');
+}
+/* 把 200 画布中的某块区域 [vx,vy,vw,vh] 铺满 size×size 显示 */
+function framed(st, vx, vy, vw, size){
+  const k = size / vw;
+  return `<div style="position:relative;width:${size}px;height:${size}px;overflow:hidden">
+      <div style="position:absolute;left:0;top:0;width:200px;height:200px;transform-origin:0 0;transform:scale(${k}) translate(${-vx}px,${-vy}px)">${stackHTML(st)}</div>
+    </div>`;
+}
+
+/* ---------------- 素材缩略图（复用同一套图层） ---------------- */
+const THUMB = 42;
+function faceThumb(i){ return framed({face:i}, 0, 0, 200, THUMB); }
+function eyeThumb(i){ return framed({eyes:i, pupil: state.pupil}, 28, 22, 144, THUMB); }
+function pupilThumb(i){
+  const e = (state.eyes != null && EYES[state.eyes].p !== 0) ? state.eyes : 0;
+  return framed({eyes:e, pupil:i}, 40, 40, 120, THUMB);
+}
+function mouthThumb(i){ return framed({mouth:i}, 38, 70, 124, THUMB); }
+function decoThumb(i){ return framed({deco:[i]}, 0, 0, 200, THUMB); }
+function buildThumb(i){
+  return cur === 0 ? faceThumb(i) : cur === 1 ? eyeThumb(i) : cur === 2 ? pupilThumb(i) : cur === 3 ? mouthThumb(i) : decoThumb(i);
+}
+function catLen(){ return [FACES.length, EYES.length, PUPILS.length, MOUTHS.length, DECOS.length][cur]; }
+function isOn(i){
+  return [state.face, state.eyes, state.pupil, state.mouth][cur] === i ||
+         (cur === 4 && state.deco.indexOf(i) > -1);
+}
+
+/* ---------------- 渲染 ---------------- */
+function renderPreview(){
+  const box = document.getElementById('preview');
+  const empty = state.face == null && state.eyes == null && state.mouth == null && state.deco.length === 0;
+  if (empty){
+    box.innerHTML = `<div class="w-[248px] h-[248px] rounded-full border-[3px] border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-300">
+        <i class="fa-regular fa-face-smile text-[64px]"></i>
+        <p class="text-[13px] mt-2">从下方素材开始 DIY</p>
+      </div>`;
+    return;
+  }
+  box.innerHTML = framed(state, 0, 0, 200, 260);
+}
+function renderGrid(){
+  const grid = document.getElementById('grid');
+  let html = '';
+  for (let i = 0, n = catLen(); i < n; i++){
+    const on = isOn(i);
+    html += `<button data-i="${i}" class="grid-item aspect-square rounded-xl flex items-center justify-center transition
+        ${on ? 'bg-[#5B5FE9]/10 ring-2 ring-[#5B5FE9]' : 'active:bg-slate-100'}">${buildThumb(i)}</button>`;
+  }
+  grid.innerHTML = html;
+}
+function renderCats(){
+  const faceObj = (state.face != null) ? FACES[state.face] : null;
+  const feat = !!(faceObj && FACE_NO_FEATURES.has(faceObj.c));
+  if (feat && cur >= 1 && cur <= 3) cur = 0;   // 自带五官的脸型：眼睛/异瞳/嘴巴无意义
+  document.querySelectorAll('.cat').forEach(function (b, i){
+    const on = i === cur;
+    const disabled = feat && i >= 1 && i <= 3;
+    b.disabled = disabled;
+    b.className = 'cat flex-1 py-2.5 rounded-xl text-[15px] transition ' +
+      (disabled ? 'opacity-40 cursor-not-allowed bg-white border border-slate-200 text-slate-400'
+       : on ? 'bg-[#5B5FE9] text-white font-semibold shadow-sm shadow-[#5B5FE9]/30'
+            : 'bg-white border border-slate-200 text-slate-700 active:bg-slate-50');
+  });
+  document.getElementById('hint').textContent = feat
+    ? '当前脸型已自带五官，眼睛 / 异瞳 / 嘴巴已自动隐藏'
+    : CATS[cur].hint;
+}
+function renderUndo(){
+  const b = document.getElementById('btnUndo');
+  b.disabled = history.length === 0;
+  b.classList.toggle('opacity-40', history.length === 0);
+}
+function renderAll(){ renderPreview(); renderCats(); renderGrid(); renderUndo(); }
+
+/* ---------------- 交互 ---------------- */
+function snap(){ history.push(JSON.stringify(state)); if (history.length > 40) history.shift(); }
+
+document.getElementById('cats').addEventListener('click', function (e){
+  const b = e.target.closest('.cat');
+  if (!b || b.disabled) return;
+  cur = +b.dataset.c;
+  renderGrid(); renderCats();
+});
+
+document.getElementById('grid').addEventListener('click', function (e){
+  const b = e.target.closest('.grid-item');
+  if (!b) return;
+  const i = +b.dataset.i;
+  snap();
+  if (cur === 0) state.face = state.face === i ? null : i;
+  else if (cur === 1) state.eyes = state.eyes === i ? null : i;
+  else if (cur === 2){
+    state.pupil = state.pupil === i ? 0 : i;
+    // 当前眼型若看不见瞳孔（闭眼/爱心眼等），自动切到能看见瞳孔的眼型
+    if (state.eyes != null && EYES[state.eyes].p === 0) state.eyes = 0;
+  }
+  else if (cur === 3) state.mouth = state.mouth === i ? null : i;
+  else {
+    const k = state.deco.indexOf(i);
+    if (k > -1) state.deco.splice(k, 1); else state.deco.push(i);
+  }
+  renderAll();
+});
+
+document.getElementById('btnReset').onclick = function (){
+  snap();
+  state.face = null; state.eyes = null; state.pupil = 0; state.mouth = null; state.deco = [];
+  renderAll(); tip('已重置，重新开始 DIY');
+};
+
+document.getElementById('btnUndo').onclick = function (){
+  if (!history.length) return;
+  const prev = JSON.parse(history.pop());
+  state.face = prev.face; state.eyes = prev.eyes; state.pupil = prev.pupil;
+  state.mouth = prev.mouth; state.deco = prev.deco;
+  renderAll(); tip('已撤回上一步');
+};
+
+/* ---------------- 保存：把同一份图层画到 canvas 导出 PNG ---------------- */
+const imgCache = {};
+function loadImg(src){
+  return new Promise(function (res){
+    if (imgCache[src]) return res(imgCache[src]);
+    const im = new Image();
+    im.onload = function (){ imgCache[src] = im; res(im); };
+    im.onerror = function (){ res(null); };
+    im.src = src;
+  });
+}
+document.getElementById('btnSave').onclick = function (){
+  const layers = specs(state);
+  const srcs = layers.map(l => l.src).filter((v, i, a) => a.indexOf(v) === i);
+  Promise.all(srcs.map(loadImg)).then(function (imgs){
+    const map = {}; srcs.forEach(function (s, i){ map[s] = imgs[i]; });
+    const K = 512 / 200;
+    const cv = document.createElement('canvas');
+    cv.width = cv.height = 512;
+    const g = cv.getContext('2d');
+    layers.forEach(function (l){
+      const im = map[l.src]; if (!im) return;
+      // 每个图层都是「整张图铺到 (x,y,w,h)」，part 已是透明底局部图，face/pupil/deco 是整张 emoji
+      g.drawImage(im, l.x * K, l.y * K, l.w * K, l.h * K);
+    });
+    try {
+      const a = document.createElement('a');
+      a.download = 'diy-emoji.png';
+      a.href = cv.toDataURL('image/png');
+      a.click();
+      tip('已保存到相册（diy-emoji.png）');
+    } catch (err){ tip('已保存到相册'); }
+  });
+};
+
+document.getElementById('btnShare').onclick = function (){ tip('已调起微信分享面板'); };
+
+/* ---------------- 提示 ---------------- */
+const toast = document.getElementById('toast');
+let toastTimer = null;
+function tip(msg){
+  toast.textContent = msg;
+  toast.classList.remove('hidden');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function (){ toast.classList.add('hidden'); }, 1500);
+}
+
+/* ---------------- 深链：便于原型总览展示不同分类状态 ----------------
+   #cat=deco                          → 打开时定位到「装饰」分类
+   #cat=deco&s=0-9-0-4-8,17           → 预设（脸型-眼睛-异瞳-嘴巴-装饰，空值=未选）
+   ----------------------------------------------------------------- */
+const HMAP = { face:0, eyes:1, pupil:2, mouth:3, deco:4 };
+const mh = location.hash.match(/cat=(\w+)/);
+if (mh && HMAP[mh[1]] !== undefined) cur = HMAP[mh[1]];
+const ms = location.hash.match(/s=([0-9,\-]+)/);
+if (ms){
+  const g = ms[1].split('-');
+  const num = v => (v === undefined || v === '') ? null : +v;
+  state.face  = num(g[0]);
+  state.eyes  = num(g[1]);
+  state.pupil = (g[2] === undefined || g[2] === '') ? 0 : +g[2];
+  state.mouth = num(g[3]);
+  state.deco  = g[4] ? g[4].split(',').map(Number).filter(n => !isNaN(n)) : [];
+}
+
+/* ---------------- 启动：与参考图一致的默认表情（大眼萌 + 微笑） ---------------- */
+renderAll();
+</script>
+
+</body>
+</html>

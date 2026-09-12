@@ -1,0 +1,53 @@
+<view class="page">
+  <view class="header">
+    <view class="nav">
+      <view class="back" bindtap="goBack">‹</view>
+      <text class="title">表情包合成器</text>
+      <view class="capsule"><text>•••</text><view class="divider"/><view class="circle"/></view>
+    </view>
+  </view>
+
+  <view class="content">
+    <view class="preview">
+      <view class="composition">
+        <view wx:if="{{facesLoading}}" class="face-loading"><view class="loading-spinner"/><text>脸型加载中</text></view>
+        <image wx:if="{{currentFace.kind === 'image'}}" class="face-image" src="{{currentFace.src}}" mode="aspectFit"/>
+        <text wx:else class="face-glyph">{{currentFace.glyph}}</text>
+        <block wx:if="{{currentFace.composable}}">
+          <view wx:if="{{currentEyes}}" class="eyes-layer"><image class="eye eye-left" src="{{currentEyes.src}}" mode="aspectFit"/><image class="eye eye-right" src="{{currentEyes.src}}" mode="aspectFit"/></view>
+          <text wx:if="{{currentPupil && currentPupil.glyph}}" class="pupil-layer">{{currentPupil.glyph}}</text>
+          <image wx:if="{{currentMouth}}" class="mouth-layer" src="{{currentMouth.src}}" mode="aspectFit"/>
+        </block>
+        <text wx:for="{{selectedDecorations}}" wx:key="index" class="deco-layer deco-{{item.slot}}">{{item.glyph}}</text>
+      </view>
+    </view>
+
+    <scroll-view class="material-scroll" scroll-y="true" show-scrollbar="false">
+      <view class="material-grid">
+        <view wx:for="{{materials}}" wx:key="index" class="material-item {{item.selected ? 'selected' : ''}}" data-index="{{index}}" bindtap="chooseMaterial">
+          <image wx:if="{{item.src}}" class="material-image" src="{{item.src}}" mode="aspectFit"/>
+          <view wx:elif="{{category === 0 || category === 1 || category === 3}}" class="thumb-loading"/>
+          <text wx:else class="material-glyph {{category === 1 || category === 3 ? 'feature-glyph' : ''}}">{{item.glyph}}</text>
+        </view>
+      </view>
+    </scroll-view>
+
+    <text class="hint">{{hint}}</text>
+    <view class="categories">
+      <view wx:for="{{categories}}" wx:key="*this" class="category {{category === index ? 'active' : ''}}" data-index="{{index}}" bindtap="switchCategory">{{item}}</view>
+    </view>
+    <view class="actions">
+      <button class="action" bindtap="reset">重置</button>
+      <button class="action {{canUndo ? '' : 'disabled'}}" disabled="{{!canUndo}}" bindtap="undo">撤回</button>
+      <button class="action accent" loading="{{saving}}" bindtap="save">保存</button>
+      <button class="action accent" open-type="share">分享</button>
+    </view>
+  </view>
+
+  <view class="tabbar">
+    <view class="tab active">☺<text>DIY表情</text></view>
+    <view class="tab" bindtap="goMoreTools">▦<text>更多工具</text></view>
+    <view class="tab" bindtap="goMixer">☻<text>表情包合成器</text></view>
+  </view>
+  <canvas type="2d" id="exportCanvas" class="export-canvas"/>
+</view>

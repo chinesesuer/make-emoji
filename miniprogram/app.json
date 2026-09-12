@@ -8,6 +8,8 @@
     "pages/gifCrop/gifCrop",
     "pages/moreTools/moreTools",
     "pages/emojiMixer/emojiMixer",
+    "pages/diyEmoji/diyEmoji",
+    "pages/gridSlice/gridSlice",
     "pages/profile/profile",
     "pages/adminLogin/adminLogin",
     "pages/adminMaterials/adminMaterials"

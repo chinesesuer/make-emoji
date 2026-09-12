@@ -2,6 +2,12 @@ Page({
   openMixer() {
     wx.navigateTo({ url: '/pages/emojiMixer/emojiMixer' });
   },
+  openDiy() {
+    wx.navigateTo({ url: '/pages/diyEmoji/diyEmoji' });
+  },
+  openGridSlice() {
+    wx.navigateTo({ url: '/pages/gridSlice/gridSlice' });
+  },
   openTool(e) {
     const routes = {
       '表情包搜索': '',

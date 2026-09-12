@@ -1,0 +1,45 @@
+<view class="page">
+  <view class="header">
+    <view class="nav">
+      <view class="back" bindtap="goBack">‹</view>
+      <text class="title">九宫格切图</text>
+      <view class="capsule"><text>•••</text><view class="divider"/><view class="circle"/></view>
+    </view>
+  </view>
+
+  <scroll-view class="content paper" scroll-y enhanced show-scrollbar="false">
+    <view class="preview-card">
+      <text class="drag-tip">长（宽）图可上下（左右）拖动</text>
+      <view class="canvas-wrap">
+        <canvas type="2d" id="previewCanvas" class="preview-canvas" style="width:{{previewWidth}}px;height:{{previewHeight}}px" bindtouchstart="touchStart" catchtouchmove="touchMove" bindtouchend="touchEnd" bindtouchcancel="touchEnd"/>
+      </view>
+    </view>
+
+    <view class="shape-row">
+      <scroll-view class="shape-scroll" scroll-x enhanced show-scrollbar="false">
+        <view class="shape-list">
+          <view wx:for="{{shapes}}" wx:key="id" class="shape-chip {{shape === item.id ? 'active' : ''}}" data-id="{{item.id}}" bindtap="selectShape"><image wx:if="{{item.mask}}" class="shape-mask" src="{{item.mask}}" mode="aspectFit"/><text wx:else>{{item.icon}}</text></view>
+        </view>
+      </scroll-view>
+      <view class="more" bindtap="openDrawer">查看<text>更多</text></view>
+    </view>
+
+    <scroll-view class="grid-scroll" scroll-x enhanced show-scrollbar="false">
+      <view class="grid-list">
+        <view wx:for="{{grids}}" wx:key="id" class="grid-chip {{grid === item.id ? 'active' : ''}}" data-id="{{item.id}}" bindtap="selectGrid">
+          <view class="mini-grid" style="grid-template-columns:repeat({{item.cols}},1fr);grid-template-rows:repeat({{item.rows}},1fr)"><view wx:for="{{item.count}}" wx:for-item="cell" wx:key="*this" class="mini-cell"/></view>
+        </view>
+      </view>
+    </scroll-view>
+    <text class="notice">注：保存后发布朋友圈时按顺序选择 {{count}} 张图片</text>
+    <view class="content-space"/>
+  </scroll-view>
+
+  <view class="actions"><button class="pill choose" bindtap="chooseImage">▧　选择图片</button><button class="pill save" loading="{{generating}}" bindtap="generateTiles">⇩　保存图片</button></view>
+  <view class="tabbar"><view class="tab" bindtap="goCreate">◆<text>制作表情</text></view><view class="tab" bindtap="goGifTools">GIF<text>GIF工具</text></view><view class="tab">☻<text>表情仓库</text></view><view class="tab active" bindtap="goMoreTools">▦<text>更多工具</text></view><view class="tab" bindtap="goProfile">♟<text>个人中心</text></view></view>
+
+  <view wx:if="{{drawerVisible}}" class="mask" bindtap="closeDrawer"><view class="drawer" catchtap="stopTap"><view class="drawer-head"><text>点击下方图片更换模板</text><view class="close" bindtap="closeDrawer">×</view></view><scroll-view class="drawer-scroll" scroll-y><view class="template-grid"><view wx:for="{{allShapes}}" wx:key="id" class="template {{shape === item.id ? 'active' : ''}}" data-id="{{item.id}}" bindtap="selectShape"><view class="template-icon"><image wx:if="{{item.mask}}" src="{{item.mask}}" mode="aspectFit"/><text wx:else>{{item.icon}}</text></view><text>{{item.name}}</text></view></view></scroll-view></view></view>
+
+  <view wx:if="{{resultVisible}}" class="mask" bindtap="closeResult"><view class="result" catchtap="stopTap"><view class="result-head"><text>切图结果（{{tiles.length}} 张）</text><view class="close" bindtap="closeResult">×</view></view><scroll-view class="result-scroll" scroll-y><view class="tiles"><view wx:for="{{tiles}}" wx:key="path" class="tile"><image src="{{item.path}}" mode="aspectFill"/><text>{{item.number}}</text></view></view></scroll-view><view class="result-foot"><button loading="{{saving}}" bindtap="saveAll">全部保存到相册</button></view></view></view>
+  <canvas type="2d" id="exportCanvas" class="export-canvas"/>
+</view>

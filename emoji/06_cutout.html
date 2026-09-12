@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>一键抠图</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<style>
+  /* 透明底棋盘格提示 */
+  .checker{
+    background-image:
+      linear-gradient(45deg,#e5e7eb 25%,transparent 25%),
+      linear-gradient(-45deg,#e5e7eb 25%,transparent 25%),
+      linear-gradient(45deg,transparent 75%,#e5e7eb 75%),
+      linear-gradient(-45deg,transparent 75%,#e5e7eb 75%);
+    background-size:16px 16px;
+    background-position:0 0,0 8px,8px -8px,-8px 0;
+  }
+</style>
+</head>
+<body class="bg-slate-200 min-h-screen flex items-center justify-center py-6 font-sans">
+
+<div class="relative bg-white rounded-[56px] border-[14px] border-black shadow-2xl overflow-hidden flex flex-col" style="width:430px;height:932px">
+
+  <!-- 顶部蓝色区 -->
+  <div class="bg-[#5B5FE9] shrink-0 pb-5">
+    <div class="flex items-center justify-between px-9 pt-4 pb-1 text-white">
+      <span class="text-[15px] font-semibold tracking-wide">9:41</span>
+      <div class="flex items-center gap-1.5 text-[13px]">
+        <i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-full text-[16px]"></i>
+      </div>
+    </div>
+    <div class="flex items-center justify-between px-5 pt-2">
+      <a href="04_more_tools.html" class="w-9 h-9 rounded-full bg-white/20 text-white flex items-center justify-center"><i class="fa-solid fa-chevron-left text-[14px]"></i></a>
+      <h1 class="text-white text-[19px] font-bold">一键抠图</h1>
+      <div class="flex items-center gap-3 bg-white/20 rounded-full px-4 py-1.5 text-white text-[14px]">
+        <i class="fa-solid fa-ellipsis"></i><span class="w-px h-4 bg-white/40"></span><i class="fa-regular fa-circle"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- 内容区 -->
+  <div class="flex-1 bg-slate-100 overflow-y-auto pb-44">
+
+    <!-- 预览区 -->
+    <div class="px-4 pt-4">
+      <div id="stage" class="relative bg-white rounded-2xl p-3 shadow-sm flex items-center justify-center" style="min-height:320px">
+        <!-- 棋盘格画布容器（有图时显示） -->
+        <div id="canvasWrap" class="checker hidden relative rounded-xl overflow-hidden" style="max-width:100%">
+          <canvas id="cv" class="block" style="max-width:100%;height:auto"></canvas>
+          <span id="cornerTag" class="hidden absolute top-0 left-0 bg-black/50 text-white text-[11px] px-2 py-0.5 rounded-br">已抠图</span>
+        </div>
+
+        <!-- 未上传：虚线框 -->
+        <button id="emptyBox" class="w-full py-16 rounded-2xl border-2 border-dashed border-slate-300 flex flex-col items-center bg-white">
+          <div class="w-[70px] h-[70px] rounded-2xl border-[5px] border-[#5B5FE9] flex items-center justify-center">
+            <i class="fa-solid fa-image text-[28px] text-[#5B5FE9]"></i>
+          </div>
+          <p class="text-[16px] font-bold text-slate-800 mt-4">点击上传图片</p>
+          <p class="text-[13px] text-slate-400 mt-1.5">支持 JPG / PNG，自动去除背景</p>
+        </button>
+      </div>
+    </div>
+
+    <!-- 提示 -->
+    <p id="hint" class="hidden text-center text-[13px] text-slate-400 px-6 mt-3">点击图片中要移除的背景色，可手动指定抠除范围</p>
+
+    <!-- 容差设置 -->
+    <div id="setting" class="hidden bg-white rounded-2xl mx-4 mt-4 p-4 shadow-sm">
+      <div class="flex items-center justify-between">
+        <span class="text-[14px] text-slate-500">抠图容差</span>
+        <span class="text-[14px] font-semibold text-[#5B5FE9]"><span id="tolVal">40</span></span>
+      </div>
+      <input id="tolRange" type="range" min="0" max="120" value="40" class="w-full mt-3 accent-[#5B5FE9] cursor-pointer">
+      <p class="text-[11px] text-slate-400 mt-1.5">容差越大，去除的相近颜色越多；抠不干净就调大，抠多了就调小</p>
+    </div>
+  </div>
+
+  <!-- 底部按钮区 -->
+  <div class="absolute bottom-0 inset-x-0 bg-white border-t border-slate-100 px-6 pt-3 pb-8 z-10">
+    <div class="flex gap-3">
+      <button id="btnSec" class="flex-1 py-4 rounded-2xl bg-slate-100 text-slate-600 font-bold text-[16px]">重新选择</button>
+      <button id="btnMain" class="flex-[1.5] py-4 rounded-2xl bg-[#5B5FE9] text-white font-bold text-[16px] shadow-lg shadow-[#5B5FE9]/30">一键抠图</button>
+    </div>
+  </div>
+
+  <!-- 提示 toast -->
+  <div id="toast" class="hidden absolute bottom-32 left-1/2 -translate-x-1/2 bg-slate-900/85 text-white text-[13px] px-5 py-2.5 rounded-full z-30 whitespace-nowrap"></div>
+
+</div>
+
+<input id="fileInput" type="file" accept="image/*" class="hidden">
+
+<script>
+  var fileInput  = document.getElementById('fileInput');
+  var emptyBox   = document.getElementById('emptyBox');
+  var canvasWrap = document.getElementById('canvasWrap');
+  var cv         = document.getElementById('cv');
+  var ctx        = cv.getContext('2d', { willReadFrequently: true });
+  var cornerTag  = document.getElementById('cornerTag');
+  var hint       = document.getElementById('hint');
+  var setting    = document.getElementById('setting');
+  var btnSec     = document.getElementById('btnSec');
+  var btnMain    = document.getElementById('btnMain');
+  var tolRange   = document.getElementById('tolRange');
+  var tolVal     = document.getElementById('tolVal');
+  var toast      = document.getElementById('toast');
+
+  var img = null;             // 已加载的 Image
+  var state = 'empty';        // empty | loaded | done
+  var MAX = 900;              // 最大边长，防止大图泛洪过慢
+
+  // ---------------- 上传 & 显示 ----------------
+  function openPicker(){ fileInput.click(); }
+  emptyBox.onclick = openPicker;
+  btnMain.addEventListener('click', function (){
+    if (state === 'empty') openPicker();
+    else if (state === 'loaded') oneKey();
+    else if (state === 'done') savePNG();
+  });
+
+  fileInput.onchange = function (e){
+    var f = e.target.files && e.target.files[0];
+    if (!f) return;
+    var url = URL.createObjectURL(f);
+    var im = new Image();
+    im.onload = function (){
+      URL.revokeObjectURL(url);
+      img = im;
+      // 限制最大边长
+      var w = im.naturalWidth, h = im.naturalHeight;
+      var k = Math.min(1, MAX / Math.max(w, h));
+      cv.width = Math.round(w * k);
+      cv.height = Math.round(h * k);
+      ctx.clearRect(0, 0, cv.width, cv.height);
+      ctx.drawImage(im, 0, 0, cv.width, cv.height);
+      state = 'loaded';
+      render();
+    };
+    im.onerror = function (){ URL.revokeObjectURL(url); tip('图片加载失败'); };
+    im.src = url;
+    fileInput.value = '';
+  };
+
+  // ---------------- 抠图算法：边缘背景泛洪填充 ----------------
+  function isBg(r, g, b, a, bg, tol){
+    if (a === 0) return true;                       // 已透明视为背景
+    var dr = r - bg[0], dg = g - bg[1], db = b - bg[2];
+    return (dr * dr + dg * dg + db * db) <= tol * tol;
+  }
+
+  function autoBgColor(){
+    var w = cv.width, h = cv.height, d = ctx.getImageData(0, 0, w, h).data;
+    var corners = [[0,0],[w-1,0],[0,h-1],[w-1,h-1]];
+    var r = 0, g = 0, b = 0, n = 0;
+    corners.forEach(function (p){
+      var o = ((p[1] * w + p[0]) * 4);
+      if (d[o + 3] > 0){ r += d[o]; g += d[o+1]; b += d[o+2]; n++; }
+    });
+    return n === 0 ? [255, 255, 255] : [Math.round(r/n), Math.round(g/n), Math.round(b/n)];
+  }
+
+  function flood(bg, tol){
+    var w = cv.width, h = cv.height;
+    var imgData = ctx.getImageData(0, 0, w, h);
+    var d = imgData.data;
+    var visited = new Uint8Array(w * h);
+    var queue = new Int32Array(w * h);
+    var qh = 0, qt = 0;
+
+    function tryAdd(idx){
+      if (visited[idx]) return;
+      visited[idx] = 1;
+      var o = idx * 4;
+      if (isBg(d[o], d[o+1], d[o+2], d[o+3], bg, tol)) queue[qt++] = idx;
+    }
+
+    // 四边像素作种子
+    for (var y = 0; y < h; y++){ tryAdd(y * w); tryAdd(y * w + w - 1); }
+    for (var x = 0; x < w; x++){ tryAdd(x); tryAdd((h - 1) * w + x); }
+
+    while (qh < qt){
+      var idx = queue[qh++];
+      var ox = idx % w, oy = (idx / w) | 0;
+      var o = idx * 4;
+      d[o + 3] = 0;
+      if (ox > 0)   tryAdd(idx - 1);
+      if (ox < w-1) tryAdd(idx + 1);
+      if (oy > 0)   tryAdd(idx - w);
+      if (oy < h-1) tryAdd(idx + w);
+    }
+    ctx.putImageData(imgData, 0, 0);
+  }
+
+  function oneKey(){ applyCut(autoBgColor()); }
+
+  function applyCut(bg){
+    if (!img) return;
+    flood(bg, +tolRange.value);
+    state = 'done';
+    render();
+  }
+
+  // 点击图片取色抠图
+  cv.addEventListener('click', function (e){
+    if (!img || state === 'empty') return;
+    var rect = cv.getBoundingClientRect();
+    var x = Math.round((e.clientX - rect.left) / rect.width * cv.width);
+    var y = Math.round((e.clientY - rect.top) / rect.height * cv.height);
+    x = Math.max(0, Math.min(cv.width - 1, x));
+    y = Math.max(0, Math.min(cv.height - 1, y));
+    var d = ctx.getImageData(x, y, 1, 1).data;
+    applyCut([d[0], d[1], d[2]]);
+  });
+
+  // ---------------- 保存 PNG ----------------
+  function savePNG(){
+    cv.toBlob(function (blob){
+      var a = document.createElement('a');
+      a.download = 'cutout.png';
+      a.href = URL.createObjectURL(blob);
+      a.click();
+      URL.revokeObjectURL(a.href);
+      tip('已保存透明 PNG');
+    }, 'image/png');
+  }
+
+  // ---------------- UI 状态 ----------------
+  function render(){
+    var isEmpty = state === 'empty';
+    emptyBox.classList.toggle('hidden', !isEmpty);
+    canvasWrap.classList.toggle('hidden', isEmpty);
+    hint.classList.toggle('hidden', isEmpty);
+    setting.classList.toggle('hidden', isEmpty);
+    cornerTag.classList.toggle('hidden', state !== 'done');
+
+    if (state === 'empty'){
+      btnMain.innerHTML = '<i class="fa-solid fa-plus mr-1"></i>选择图片';
+      btnSec.classList.add('hidden');
+    } else if (state === 'loaded'){
+      btnMain.innerHTML = '一键抠图';
+      btnSec.textContent = '重新选择';
+      btnSec.classList.remove('hidden');
+    } else {
+      btnMain.innerHTML = '<i class="fa-solid fa-download mr-1"></i>保存 PNG';
+      btnSec.textContent = '重置';
+      btnSec.classList.remove('hidden');
+    }
+  }
+
+  btnSec.addEventListener('click', function (){
+    if (state === 'loaded' || state === 'done'){
+      // 重新显示原图
+      ctx.clearRect(0, 0, cv.width, cv.height);
+      ctx.drawImage(img, 0, 0, cv.width, cv.height);
+      state = 'loaded';
+      render();
+    }
+  });
+
+  tolRange.oninput = function (){ tolVal.textContent = this.value; };
+
+  // ---------------- 提示 ----------------
+  var toastTimer = null;
+  function tip(msg){
+    toast.textContent = msg;
+    toast.classList.remove('hidden');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function (){ toast.classList.add('hidden'); }, 1500);
+  }
+
+  render();
+</script>
+
+</body>
+</html>

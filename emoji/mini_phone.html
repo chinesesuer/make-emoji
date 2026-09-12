@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>迷你电话号码</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+<body class="bg-slate-200 min-h-screen flex items-center justify-center py-6 font-sans">
+
+<div class="relative bg-white rounded-[56px] border-[14px] border-black shadow-2xl overflow-hidden flex flex-col" style="width:430px;height:932px">
+
+  <!-- 顶部深色导航栏 -->
+  <div class="bg-[#252832] shrink-0 pb-4">
+    <div class="flex items-center justify-between px-9 pt-4 pb-1 text-white">
+      <span class="text-[15px] font-semibold tracking-wide">9:41</span>
+      <div class="flex items-center gap-1.5 text-[13px]">
+        <i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-full text-[16px]"></i>
+      </div>
+    </div>
+    <div class="flex items-center justify-between px-5 pt-2">
+      <a href="04_more_tools.html" class="w-9 h-9 rounded-full text-white flex items-center justify-center"><i class="fa-solid fa-chevron-left text-[18px]"></i></a>
+      <h1 class="text-white text-[20px] font-bold flex-1 text-center mr-9">迷你电话号码</h1>
+    </div>
+  </div>
+
+  <!-- 内容区 -->
+  <div class="flex-1 bg-white overflow-y-auto pb-10">
+
+    <!-- 输入号码 -->
+    <div class="px-5 pt-6">
+      <p class="text-[22px] font-bold text-amber-500 mb-4">输入号码</p>
+      <textarea id="phoneInput" rows="4" placeholder="请输入电话号码" class="w-full bg-slate-200 rounded-3xl px-6 py-5 text-[28px] text-slate-800 outline-none resize-none placeholder:text-slate-400">1212</textarea>
+    </div>
+
+    <!-- 号码样式列表 -->
+    <div class="px-8 mt-8" id="resultList">
+      <!-- 样式1：加粗上标小号数字 -->
+      <div class="result-item py-5 border-b border-slate-300 cursor-pointer active:bg-slate-50 transition-colors" data-style="bold-sup">
+        <span class="text-[26px] font-bold text-slate-800" id="style1">¹²¹²</span>
+      </div>
+      <!-- 样式2：小号上标数字 -->
+      <div class="result-item py-5 border-b border-slate-300 cursor-pointer active:bg-slate-50 transition-colors" data-style="superscript">
+        <span class="text-[20px] text-slate-800" id="style2">¹²¹²</span>
+      </div>
+      <!-- 样式3：TEL大写 + 上标 -->
+      <div class="result-item py-5 border-b border-slate-300 cursor-pointer active:bg-slate-50 transition-colors" data-style="tel1">
+        <span class="text-[24px] text-slate-800" id="style3">Tᴇᴸ¹²¹²</span>
+      </div>
+      <!-- 样式4：TEL小写 + 上标 -->
+      <div class="result-item py-5 border-b border-slate-300 cursor-pointer active:bg-slate-50 transition-colors" data-style="tel2">
+        <span class="text-[24px] text-slate-800" id="style4">Tᴇʟ¹²¹²</span>
+      </div>
+      <!-- 样式5：电话图标1 + 数字 -->
+      <div class="result-item py-5 border-b border-slate-300 cursor-pointer active:bg-slate-50 transition-colors" data-style="icon1">
+        <span class="text-[24px] text-slate-800" id="style5">☎¹²¹²</span>
+      </div>
+      <!-- 样式6：电话图标2 + 上标数字 -->
+      <div class="result-item py-5 border-b border-slate-300 cursor-pointer active:bg-slate-50 transition-colors" data-style="icon2">
+        <span class="text-[24px] text-slate-800" id="style6">☏¹²¹²</span>
+      </div>
+    </div>
+
+    <!-- 底部提示 -->
+    <p class="text-center text-[22px] text-slate-600 mt-8">提示：点击号码复制</p>
+
+  </div>
+</div>
+
+<!-- 复制成功提示 -->
+<div id="toast" class="hidden fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/75 text-white px-6 py-3 rounded-xl text-[14px] z-50">
+  已复制到剪贴板
+</div>
+
+<script>
+  // 上标数字映射
+  var superscriptMap = {
+    '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴',
+    '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹'
+  };
+
+  // 小写变体字母映射（用于TEL样式）
+  var smallCapsMap = {
+    'E': 'ᴇ', 'L': 'ᴸ', 'l': 'ʟ', 'e': 'ᴇ', 't': 'ᴛ'
+  };
+
+  function toSuperscript(num) {
+    return num.split('').map(function (ch) {
+      return superscriptMap[ch] || ch;
+    }).join('');
+  }
+
+  var phoneInput = document.getElementById('phoneInput');
+  var style1 = document.getElementById('style1');
+  var style2 = document.getElementById('style2');
+  var style3 = document.getElementById('style3');
+  var style4 = document.getElementById('style4');
+  var style5 = document.getElementById('style5');
+  var style6 = document.getElementById('style6');
+
+  function updateStyles() {
+    var val = phoneInput.value.trim() || '';
+    var sup = toSuperscript(val);
+
+    style1.textContent = sup;
+    style2.textContent = sup;
+    style3.textContent = 'Tᴇᴸ' + sup;
+    style4.textContent = 'Tᴇʟ' + sup;
+    style5.textContent = '☎' + sup;
+    style6.textContent = '☏' + sup;
+  }
+
+  phoneInput.addEventListener('input', updateStyles);
+
+  // 点击复制功能
+  var toast = document.getElementById('toast');
+  var toastTimer = null;
+
+  function showToast() {
+    toast.classList.remove('hidden');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () {
+      toast.classList.add('hidden');
+    }, 1500);
+  }
+
+  function copyText(text) {
+    if (!text) return;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(showToast).catch(function () {
+        fallbackCopy(text);
+      });
+    } else {
+      fallbackCopy(text);
+    }
+  }
+
+  function fallbackCopy(text) {
+    var textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.left = '-9999px';
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+      document.execCommand('copy');
+      showToast();
+    } catch (e) {
+      console.error('复制失败', e);
+    }
+    document.body.removeChild(textarea);
+  }
+
+  var items = document.querySelectorAll('.result-item');
+  items.forEach(function (item) {
+    item.addEventListener('click', function () {
+      var span = item.querySelector('span');
+      copyText(span.textContent);
+    });
+  });
+
+  // 初始化
+  updateStyles();
+</script>
+
+</body>
+</html>

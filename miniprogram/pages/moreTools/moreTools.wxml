@@ -12,6 +12,11 @@
       <view class="banner-copy"><text class="banner-title">表情包合成器</text><text class="banner-sub">两个表情合成一个新表情 · 掷骰子随机生成</text></view>
       <text class="chevron">›</text>
     </view>
+    <view class="mixer-banner diy-banner" bindtap="openDiy">
+      <view class="banner-icon">☺</view>
+      <view class="banner-copy"><text class="banner-title">DIY表情</text><text class="banner-sub">自由组合脸型、眼睛、嘴巴与装饰</text></view>
+      <text class="chevron">›</text>
+    </view>
 
     <view class="card">
       <view class="card-title"><text class="section-icon purple">▣</text>图片处理</view>
@@ -19,7 +24,7 @@
         <view class="tool" data-name="图片压缩" bindtap="openTool"><view class="tool-icon green">↙</view><text>图片压缩</text></view>
         <view class="tool" data-name="格式转换" bindtap="openTool"><view class="tool-icon cyan">↔</view><text>格式转换</text></view>
         <view class="tool" data-name="一键抠图" bindtap="openTool"><view class="tool-icon violet">✦</view><text>一键抠图</text></view>
-        <view class="tool" data-name="九宫格切图" bindtap="openTool"><view class="tool-icon orange">▦</view><text>九宫格切图</text></view>
+        <view class="tool" bindtap="openGridSlice"><view class="tool-icon orange">▦</view><text>九宫格切图</text></view>
       </view>
     </view>
 

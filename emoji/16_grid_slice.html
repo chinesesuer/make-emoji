@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>九宫格切图</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<style>
+  .noscroll::-webkit-scrollbar{display:none}
+  .noscroll{-ms-overflow-style:none;scrollbar-width:none}
+  .xscroll{overflow-x:auto;overflow-y:hidden}
+
+  /* 网格纸背景 */
+  .paper{
+    background-color:#FCFCFC;
+    background-image:
+      linear-gradient(rgba(20,28,60,.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(20,28,60,.045) 1px, transparent 1px);
+    background-size:16px 16px;
+  }
+
+  /* 行1 形状芯片 */
+  .chip{transition:border-color .15s ease, background-color .15s ease}
+  .chip .thumb{position:relative;display:block;width:52px;height:52px}
+  .dtpl .thumb{position:relative;display:block;width:100%;aspect-ratio:1/1}
+  .fill{position:absolute;inset:0;background:#F2B0B0;
+    -webkit-mask:var(--m) center/100% 100% no-repeat; mask:var(--m) center/100% 100% no-repeat}
+  .clip{position:absolute;inset:0;
+    -webkit-mask:var(--m) center/100% 100% no-repeat; mask:var(--m) center/100% 100% no-repeat}
+  .gl{position:absolute;background:#fff}
+  .gl.v{top:0;bottom:0;width:2px;margin-left:-1px}
+  .gl.h{left:0;right:0;height:2px;margin-top:-1px}
+  .chip.on{border-color:#D89C36!important;background:#FFFDF8}
+
+  /* 查看更多 · 底部抽屉 */
+  #drawer .sheet{animation:up .22s ease}
+  @keyframes up{from{transform:translateY(40%);opacity:.4}to{transform:translateY(0);opacity:1}}
+  .dtpl{position:relative;border-radius:14px;border:3px solid transparent;padding:6px;
+        background:#fff;transition:border-color .15s ease}
+  .dtpl.on{border-color:#D89C36}
+  .dtpl .thumb{position:relative;display:block;width:100%;aspect-ratio:1/1}
+  .dtpl .fname{display:block;text-align:center;font-size:11px;color:#8A8A8E;margin-top:3px;font-weight:600}
+
+  /* 行2 宫格图标 */
+  .gchip .gi rect{fill:#DEDEDE;transition:fill .15s ease}
+  .gchip.on .gi rect{fill:#F2B0B0}
+  .more{width:44px;line-height:1.25}
+
+  /* 底部胶囊按钮 */
+  .pill{height:50px;border-radius:999px;color:#fff;font-weight:700;font-size:16px;
+    display:flex;align-items:center;justify-content:center;gap:6px;
+    box-shadow:0 6px 14px rgba(0,0,0,.10)}
+  .pill-blue{background:linear-gradient(90deg,#8ABAF6 0%,#AEB4F6 100%)}
+  .pill-pink{background:linear-gradient(90deg,#E47296 0%,#F19AB5 100%)}
+  #cv{cursor:grab;touch-action:none;display:block;filter:drop-shadow(0 6px 16px rgba(30,40,80,.13));
+      transition:width .18s ease,height .18s ease}
+  #cv.dragging{cursor:grabbing}
+</style>
+</head>
+<body class="bg-slate-200 min-h-screen flex items-center justify-center py-6 font-sans">
+
+<div class="relative bg-white rounded-[56px] border-[14px] border-black shadow-2xl overflow-hidden flex flex-col" style="width:430px;height:932px">
+
+  <!-- 顶部：浅色沉浸式导航 -->
+  <div class="bg-[#FCFCFC] shrink-0 relative">
+    <div class="flex items-center justify-between px-9 pt-4 pb-1 text-slate-900">
+      <span class="text-[15px] font-semibold tracking-wide">9:41</span>
+      <div class="flex items-center gap-1.5 text-[13px]">
+        <i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-full text-[16px]"></i>
+      </div>
+    </div>
+    <div class="flex items-center justify-between px-4 pt-2 pb-3">
+      <a href="04_more_tools.html" class="w-9 h-9 rounded-full text-slate-800 flex items-center justify-center active:bg-black/5"><i class="fa-solid fa-chevron-left text-[15px]"></i></a>
+      <h1 class="text-slate-900 text-[18px] font-bold">九宫格切图</h1>
+      <div class="flex items-center gap-3 rounded-full border border-black/10 px-4 py-1.5 text-slate-700 text-[14px]">
+        <i class="fa-solid fa-ellipsis"></i><span class="w-px h-4 bg-black/15"></span><i class="fa-regular fa-circle"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- 内容区 -->
+  <div class="flex-1 paper overflow-y-auto noscroll pb-32">
+
+    <!-- 预览：整块白底（与参考图一致，图块浮在白色区域上） -->
+    <div class="bg-white pt-3 pb-4">
+      <p class="text-center text-[13px] text-slate-400 mb-2">长(宽)图可上下(左右)拖动</p>
+      <div class="flex items-center justify-center">
+        <canvas id="cv" width="360" height="360"></canvas>
+      </div>
+    </div>
+
+    <!-- 第一行：切图形状（五个）+ 查看更多 -->
+    <div class="mt-3 px-3 flex items-center gap-1">
+      <div id="shapeRow" class="xscroll noscroll flex items-center gap-2 flex-1"></div>
+      <button id="more" class="more shrink-0 text-[13px] font-semibold text-slate-600 text-center active:opacity-60">查看<br>更多</button>
+    </div>
+
+    <!-- 第二行：宫格数量 -->
+    <div class="mt-4 px-3">
+      <div id="gridRow" class="xscroll noscroll flex items-center justify-between"></div>
+    </div>
+
+    <p class="mt-4 px-4 text-center text-[13px] font-semibold" style="color:#E44E66">
+      注：保存后发布朋友圈时按顺序选择<b id="cnt">9</b>张图片
+    </p>
+  </div>
+
+  <!-- 底部操作条 -->
+  <div class="absolute bottom-[86px] inset-x-0 px-5 z-20">
+    <div class="flex gap-3">
+      <label class="pill pill-blue flex-1 cursor-pointer active:opacity-90">
+        <i class="fa-solid fa-image text-[15px]"></i> 选择图片
+        <input id="file" type="file" accept="image/*" class="hidden">
+      </label>
+      <button id="save" class="pill pill-pink flex-1 active:opacity-90">
+        <i class="fa-solid fa-download text-[15px]"></i> 保存图片
+      </button>
+    </div>
+  </div>
+
+  <!-- 底部TabBar -->
+  <div class="absolute bottom-0 inset-x-0 bg-white/95 backdrop-blur border-t border-slate-100 pt-2 pb-6 px-1 flex z-10">
+    <a href="01_create.html" class="flex-1 flex flex-col items-center gap-1 text-slate-400"><i class="fa-solid fa-shapes text-[20px]"></i><span class="text-[10px]">制作表情</span></a>
+    <a href="02_gif_tools.html" class="flex-1 flex flex-col items-center gap-1 text-slate-400"><span class="text-[9px] font-black border-[2.5px] border-current rounded-[5px] px-1 leading-[15px] mt-[3px]">GIF</span><span class="text-[10px]">GIF工具</span></a>
+    <a href="03_warehouse.html" class="flex-1 flex flex-col items-center gap-1 text-slate-400 relative"><span class="relative"><i class="fa-regular fa-face-smile text-[20px]"></i><span class="absolute -top-0.5 -right-1 w-2 h-2 bg-rose-500 rounded-full"></span></span><span class="text-[10px]">表情仓库</span></a>
+    <a href="04_more_tools.html" class="flex-1 flex flex-col items-center gap-1 text-[#5B5FE9]"><i class="fa-solid fa-table-cells-large text-[19px]"></i><span class="text-[10px] font-semibold">更多工具</span></a>
+    <a href="05_profile.html" class="flex-1 flex flex-col items-center gap-1 text-slate-400"><i class="fa-solid fa-user text-[19px]"></i><span class="text-[10px]">个人中心</span></a>
+  </div>
+
+  <!-- 查看更多 · 底部抽屉 -->
+  <div id="drawer" class="absolute inset-0 z-30 hidden bg-black/50 flex-col">
+    <div class="sheet absolute bottom-0 inset-x-0 bg-white rounded-t-3xl flex flex-col" style="max-height:74%">
+      <div class="flex items-center justify-between pl-5 pr-4 pt-4 pb-2 shrink-0">
+        <p class="text-[17px] font-bold text-slate-800">点击下方图片更换模板</p>
+        <button id="closeD" class="w-9 h-9 rounded-full flex items-center justify-center text-slate-600 active:bg-black/5"><i class="fa-solid fa-xmark text-[20px]"></i></button>
+      </div>
+      <div id="tplGrid" class="flex-1 overflow-y-auto noscroll px-3 pt-1 pb-6 grid grid-cols-4 gap-x-3 gap-y-4"></div>
+    </div>
+  </div>
+
+  <!-- 结果弹层 -->
+  <div id="modal" class="absolute inset-0 z-30 hidden bg-black/60 flex-col">
+    <div class="absolute bottom-0 inset-x-0 bg-white rounded-t-3xl max-h-[80%] flex flex-col">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+        <p class="text-[15px] font-bold text-slate-800">切图结果（<span id="mCnt">9</span> 张）</p>
+        <button id="closeM" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div id="tiles" class="flex-1 overflow-y-auto noscroll p-4 grid gap-3" style="grid-template-columns:repeat(3,1fr)"></div>
+      <div class="p-3 border-t border-slate-100">
+        <button id="allDl" class="w-full h-11 rounded-xl bg-[#5B5FE9] text-white text-[14px] font-semibold shadow-md shadow-[#5B5FE9]/30 active:opacity-90">全部下载</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="assets/grid/demo.js"></script>
+<script src="assets/grid/masks.js"></script>
+<script>
+/* ============ 数据（顺序/样式对齐参考截图） ============ */
+const MASKSRC = 'assets/grid/';
+// 行1：五个形状（前 5 个来自参考图）
+const SHAPES = [
+  {id:'square', n:'方形'},
+  {id:'circle', n:'圆形'},
+  {id:'bear',   n:'熊头'},
+  {id:'heart',  n:'爱心'},
+  {id:'flower', n:'花朵'},
+];
+// “查看更多”抽屉里的全部模板
+const MORE_SHAPES = [
+  {id:'rounded',  n:'圆角'},
+  {id:'star',     n:'星形'},
+  {id:'hex',      n:'六边形'},
+  {id:'e_rabbit', n:'兔兔'},
+  {id:'e_cat',    n:'猫咪'},
+  {id:'e_pig',    n:'猪猪'},
+  {id:'e_frog',   n:'青蛙'},
+  {id:'e_dog',    n:'狗狗'},
+  {id:'e_bear',   n:'小熊'},
+  {id:'e_panda',  n:'熊猫'},
+  {id:'e_monkey', n:'猴子'},
+  {id:'e_mouse',  n:'老鼠'},
+  {id:'e_koala',  n:'考拉'},
+];
+// 行2：宫格（参考图顺序：3列/2行、三格、四格、两格、三行两列）
+const GRIDS = [
+  {id:'3x3', r:3, c:3, n:'九宫格（三行三列，9 张）'},
+  {id:'2x3', r:2, c:3, n:'六宫格（两行三列，6 张）'},
+  {id:'1x3', r:1, c:3, n:'三宫格（一行三列，3 张）'},
+  {id:'2x2', r:2, c:2, n:'四宫格（两行两列，4 张）'},
+  {id:'1x2', r:1, c:2, n:'两宫格（一行两列，2 张）'},
+  {id:'3x2', r:3, c:2, n:'六宫格（三行两列，6 张）'},
+];
+const G_BY = Object.fromEntries(GRIDS.map(g=>[g.id,g]));
+
+const BOX = 360;        // 图块最大边长(px)
+const GAP = 6;          // 格与格的缝(px)
+const TILE = 600;       // 导出时每格的像素尺寸
+
+const state = {shape:'square', grid:'3x3', rx:0.5, ry:0.5, more:false};
+let img = new Image();
+const maskCache = {};
+/* 蒙版地址：优先用内联 data-URL
+   （Chromium 下 CSS mask / -webkit-mask 引用 file:// 本地文件不会生效，
+    但 <img> / background-image / canvas 可以，所以统一内联成 data-URL） */
+function maskURL(id){
+  return (window.GRID_MASKS && window.GRID_MASKS[id]) || (MASKSRC + 'mask_' + id + '.png');
+}
+function maskOf(id){
+  if(id==='square') return null;        // 方形不需要蒙版，直接铺满
+  if(!maskCache[id]){
+    const im = new Image(); im.src = maskURL(id); maskCache[id]=im;
+  }
+  return maskCache[id];
+}
+
+/* ============ 布局 ============ */
+function layout(){
+  const g = G_BY[state.grid];
+  const cell = Math.min((BOX-(g.c-1)*GAP)/g.c, (BOX-(g.r-1)*GAP)/g.r);
+  return {r:g.r, c:g.c, gap:GAP, cell, bw:g.c*cell+(g.c-1)*GAP, bh:g.r*cell+(g.r-1)*GAP};
+}
+/* 图片在块内的摆放：cover + 归一化偏移 */
+function placement(bw,bh){
+  if(!img.width) return {dw:bw,dh:bh,dx:0,dy:0,mx:0,my:0};
+  const s = Math.max(bw/img.width, bh/img.height);
+  const dw = img.width*s, dh = img.height*s;
+  const mx = Math.max(0,dw-bw), my = Math.max(0,dh-bh);
+  return {dw,dh,dx:-state.rx*mx,dy:-state.ry*my,mx,my};
+}
+
+/* ============ 绘制 ============ */
+function paint(o, W, H, k){
+  const L = layout();
+  o.setTransform(k,0,0,k,0,0);
+  o.clearRect(0,0,W/k,H/k);
+  const P = placement(L.bw,L.bh);
+  o.drawImage(img, P.dx, P.dy, P.dw, P.dh);
+
+  const m = maskOf(state.shape);
+  const mReady = m && m.complete && m.naturalWidth;
+  if(mReady){
+    o.setTransform(1,0,0,1,0,0);
+    o.globalCompositeOperation = 'destination-in';
+    o.drawImage(m, 0,0, W,H);
+    o.globalCompositeOperation = 'source-over';
+    o.setTransform(k,0,0,k,0,0);
+  }
+
+  // 白色格缝（同样要被口罩裁剪）
+  const t = document.createElement('canvas'); t.width=W; t.height=H;
+  const tc = t.getContext('2d');
+  tc.setTransform(k,0,0,k,0,0);
+  tc.fillStyle = '#fff';
+  for(let i=1;i<L.c;i++) tc.fillRect(L.cell*i + L.gap*(i-1), 0, L.gap, L.bh);
+  for(let j=1;j<L.r;j++) tc.fillRect(0, L.cell*j + L.gap*(j-1), L.bw, L.gap);
+  if(mReady){
+    tc.setTransform(1,0,0,1,0,0);
+    tc.globalCompositeOperation='destination-in';
+    tc.drawImage(m,0,0,W,H);
+  }
+  o.save(); o.setTransform(1,0,0,1,0,0); o.drawImage(t,0,0); o.restore();
+}
+
+const cv = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+function renderPreview(){
+  if(!img.width) return;
+  const L = layout();
+  const DPR = Math.min(2, window.devicePixelRatio||1);
+  cv.width = Math.round(L.bw*DPR); cv.height = Math.round(L.bh*DPR);
+  cv.style.width = L.bw+'px'; cv.style.height = L.bh+'px';
+  paint(ctx, cv.width, cv.height, DPR);
+  document.getElementById('cnt').textContent = L.r*L.c;
+}
+
+/* ============ 行1：形状芯片（固定 5 个基础形状） ============ */
+function thumbHTML(id){
+  /* 注意：style 属性用双引号包裹，url() 内必须用单引号，否则属性被截断、蒙版失效 */
+  const url = "url('" + maskURL(id) + "')";
+  return `<span class="thumb">
+    <span class="fill" style="--m:${url}"></span>
+    <span class="clip" style="--m:${url}">
+      <i class="gl v" style="left:33.33%"></i><i class="gl v" style="left:66.66%"></i>
+      <i class="gl h" style="top:33.33%"></i><i class="gl h" style="top:66.66%"></i>
+    </span>
+  </span>`;
+}
+function buildShapeRow(){
+  document.getElementById('shapeRow').innerHTML = SHAPES.map(s=>`
+    <button data-shape="${s.id}" title="${s.n}"
+      class="chip shrink-0 w-[58px] h-[58px] rounded-[8px] border-2 ${state.shape===s.id?'on border-[#D89C36]':'border-transparent'} flex items-center justify-center">
+      ${thumbHTML(s.id)}
+    </button>`).join('');
+}
+
+/* ============ 查看更多 · 底部抽屉 ============ */
+function buildDrawer(){
+  const list = SHAPES.concat(MORE_SHAPES);
+  document.getElementById('tplGrid').innerHTML = list.map(s=>`
+    <button data-tpl="${s.id}" title="${s.n}"
+      class="dtpl ${state.shape===s.id?'on shadow-md':''} active:opacity-80">
+      <span class="block w-full" style="aspect-ratio:1/1">${thumbHTML(s.id)}</span>
+      <span class="fname">${s.n}</span>
+    </button>`).join('');
+}
+function openDrawer(){ buildDrawer(); const d=document.getElementById('drawer'); d.classList.remove('hidden'); d.classList.add('flex'); }
+function closeDrawer(){ const d=document.getElementById('drawer'); d.classList.add('hidden'); d.classList.remove('flex'); }
+
+/* ============ 行2：宫格芯片 ============ */
+function gridSVG(g, on){
+  const W = 40, gap = 3;
+  const cell = (W-(g.c-1)*gap)/g.c;
+  const H = g.r*cell + (g.r-1)*gap;
+  let s = '';
+  for(let r=0;r<g.r;r++) for(let c=0;c<g.c;c++){
+    s += `<rect x="${(c*(cell+gap)).toFixed(2)}" y="${(r*(cell+gap)).toFixed(2)}" width="${cell.toFixed(2)}" height="${cell.toFixed(2)}" rx="1.2"/>`;
+  }
+  return `<svg class="gi" width="${W}" height="${H.toFixed(2)}" viewBox="0 0 ${W} ${H.toFixed(2)}">${s}</svg>`;
+}
+function buildGridRow(){
+  document.getElementById('gridRow').innerHTML = GRIDS.map(g=>`
+    <button data-grid="${g.id}" title="${g.n}"
+      class="gchip shrink-0 w-[62px] min-h-[62px] ${state.grid===g.id?'on':''} flex items-center justify-center rounded-xl active:bg-black/5">
+      ${gridSVG(g)}
+    </button>`).join('');
+}
+
+/* ============ 交互 ============ */
+document.getElementById('shapeRow').addEventListener('click', e=>{
+  const b = e.target.closest('[data-shape]'); if(!b) return;
+  state.shape = b.dataset.shape; buildShapeRow(); renderPreview();
+});
+document.getElementById('more').addEventListener('click', openDrawer);
+document.getElementById('closeD').addEventListener('click', closeDrawer);
+document.getElementById('drawer').addEventListener('click', e=>{
+  if(e.target.id==='drawer'){ closeDrawer(); return; }   // 点遮罩关闭
+  const b = e.target.closest('[data-tpl]'); if(!b) return;
+  state.shape = b.dataset.tpl;
+  buildShapeRow(); buildDrawer(); renderPreview();
+  setTimeout(closeDrawer, 120);
+});
+document.getElementById('gridRow').addEventListener('click', e=>{
+  const b = e.target.closest('[data-grid]'); if(!b) return;
+  state.grid = b.dataset.grid;
+  state.rx = state.ry = 0.5;
+  buildGridRow(); renderPreview();
+});
+
+/* ---- 拖动图片 ---- */
+let drag = null;
+cv.addEventListener('pointerdown', e=>{
+  const L = layout(), P = placement(L.bw,L.bh);
+  if(P.mx<1 && P.my<1) return;          // 无可拖动空间
+  drag = {x:e.clientX, y:e.clientY, rx:state.rx, ry:state.ry, mx:P.mx, my:P.my};
+  cv.classList.add('dragging');
+  try{ cv.setPointerCapture(e.pointerId); }catch(_){}
+});
+cv.addEventListener('pointermove', e=>{
+  if(!drag) return;
+  if(drag.mx>1) state.rx = Math.min(1, Math.max(0, drag.rx - (e.clientX-drag.x)/drag.mx));
+  if(drag.my>1) state.ry = Math.min(1, Math.max(0, drag.ry - (e.clientY-drag.y)/drag.my));
+  renderPreview();
+  window.__moved = true;
+});
+function endDrag(){ drag=null; cv.classList.remove('dragging'); }
+cv.addEventListener('pointerup', endDrag);
+cv.addEventListener('pointercancel', endDrag);
+
+/* ---- 选图 ---- */
+document.getElementById('file').addEventListener('change', e=>{
+  const f = e.target.files[0]; if(!f) return;
+  const u = URL.createObjectURL(f);
+  const ni = new Image();
+  ni.onload = ()=>{ img = ni; state.rx = state.ry = 0.5; renderPreview(); };
+  ni.src = u;
+});
+
+/* ============ 切图导出 ============ */
+function buildComposite(){
+  const L = layout();
+  const k = TILE / L.cell;
+  const W = Math.round(L.bw*k), H = Math.round(L.bh*k);
+  const oc = document.createElement('canvas'); oc.width=W; oc.height=H;
+  paint(oc.getContext('2d'), W, H, k);
+  return {oc, L, k};
+}
+function openResult(){
+  const {oc, L, k} = buildComposite();
+  const tiles = document.getElementById('tiles'); tiles.innerHTML='';
+  document.getElementById('mCnt').textContent = L.r*L.c;
+  const cw = Math.round(L.cell*k), ch = cw, step = Math.round((L.cell+L.gap)*k);
+  const urls = [];
+  for(let r=0;r<L.r;r++) for(let c=0;c<L.c;c++){
+    const tc = document.createElement('canvas'); tc.width=cw; tc.height=ch;
+    const tx = tc.getContext('2d');
+    tx.drawImage(oc, c*step, r*step, cw, ch, 0, 0, cw, ch);
+    const u = tc.toDataURL('image/png'); urls.push(u);
+    const a = document.createElement('a');
+    a.href = u; a.download = `grid_${r*L.c+c+1}.png`;
+    a.className = 'block rounded-xl overflow-hidden bg-slate-100 border border-slate-200 active:opacity-80';
+    a.innerHTML = `<img src="${u}" class="w-full block" alt="切图${r*L.c+c+1}">`;
+    tiles.appendChild(a);
+  }
+  window.__tileURLs = urls;
+  const m = document.getElementById('modal'); m.classList.remove('hidden'); m.classList.add('flex');
+}
+function dlAll(){
+  (window.__tileURLs||[]).forEach((u,i)=>{
+    const a=document.createElement('a'); a.href=u; a.download=`grid_${i+1}.png`;
+    document.body.appendChild(a); a.click(); a.remove();
+  });
+}
+document.getElementById('save').addEventListener('click', openResult);
+document.getElementById('closeM').addEventListener('click', ()=>{
+  const m=document.getElementById('modal'); m.classList.add('hidden'); m.classList.remove('flex');
+});
+document.getElementById('allDl').addEventListener('click', dlAll);
+
+/* ============ 初始化 ============ */
+buildShapeRow(); buildGridRow();
+img.onload = renderPreview;
+img.src = window.DEMO_GRID_IMG;
+// 口罩图预加载后重绘一次（避免首帧缺口罩）
+['circle','bear','heart','flower'].forEach(id=>{
+  const m = maskOf(id); if(m) m.onload = ()=>renderPreview();
+});
+</script>
+</body>
+</html>

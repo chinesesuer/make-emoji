@@ -36,7 +36,7 @@
     </view>
 
     <view class="actions">
-      <button class="action save" loading="{{saving}}" bindtap="saveEmoji">save emoji</button>
+      <button class="action save" loading="{{saving}}" bindtap="saveEmoji">保存 emoji</button>
       <button class="action share" open-type="share">分享给朋友</button>
     </view>
     <view class="tip">上下滑动选择表情 · 点骰子随机生成</view>

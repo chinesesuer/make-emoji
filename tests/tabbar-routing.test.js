@@ -37,3 +37,11 @@ test('主入口页面不再通过普通页面栈跳转彼此', () => {
     assert.doesNotMatch(source, /(?:navigateTo|redirectTo|reLaunch)\(\{\s*url:\s*['"]\/pages\/(?:index\/index|gifTools\/gifTools|moreTools\/moreTools|profile\/profile)/);
   });
 });
+
+test('主入口页面显示时会将当前路由同步给共享 TabBar', () => {
+  const scripts = ['index/index.js', 'gifTools/gifTools.js', 'moreTools/moreTools.js', 'profile/profile.js'];
+  scripts.forEach(script => {
+    const source = fs.readFileSync(path.join(__dirname, '..', 'miniprogram', 'pages', script), 'utf8');
+    assert.match(source, /onShow\(\)\s*\{[\s\S]*?getTabBar\(\)[\s\S]*?selected:\s*this\.route/);
+  });
+});

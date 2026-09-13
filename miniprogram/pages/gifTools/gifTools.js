@@ -14,6 +14,10 @@ Page({
       { name: 'GIF帧转图片', icon: '/images/gif-tools/image.svg' }
     ]
   },
+  onShow() {
+    const tabBar = typeof this.getTabBar === 'function' && this.getTabBar();
+    if (tabBar) tabBar.setData({ selected: this.route });
+  },
   openTool(e) {
     if (e.currentTarget.dataset.name === '视频转GIF') {
       wx.navigateTo({ url: '/pages/gifVideo/gifVideo' });

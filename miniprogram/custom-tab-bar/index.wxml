@@ -1,6 +1,6 @@
 <view class="tabbar">
-  <view wx:for="{{tabs}}" wx:key="path" class="tab {{item.active ? 'active' : ''}}" data-path="{{item.path}}" bindtap="switchTo">
-    <image class="tab-icon" src="{{item.active ? item.activeIcon : item.icon}}" mode="aspectFit"/>
+  <view wx:for="{{tabs}}" wx:key="text" class="tab {{item.path === selected ? 'active' : ''}}" data-path="{{item.path}}" bindtap="switchTo">
+    <image class="tab-icon" src="{{item.path === selected ? item.activeIcon : item.icon}}" mode="aspectFit"/>
     <text>{{item.text}}</text>
   </view>
 </view>

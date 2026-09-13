@@ -11,6 +11,10 @@ Page({
     this.sceneLoadTasks = {};
     this.materialsReady = this.loadCloudMaterials();
   },
+  onShow() {
+    const tabBar = typeof this.getTabBar === 'function' && this.getTabBar();
+    if (tabBar) tabBar.setData({ selected: this.route });
+  },
   async loadCloudMaterials() {
     // 首屏只请求身体素材，防止表情、挂件的云端请求抢占首屏网络。
     const bodyMaterials = await this.loadSceneMaterials('body');

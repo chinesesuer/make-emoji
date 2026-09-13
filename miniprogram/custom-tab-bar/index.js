@@ -1,5 +1,6 @@
 Component({
   data: {
+    selected: '',
     tabs: [
       { path: 'pages/index/index', text: '制作表情', icon: '/images/tabbar/create.svg', activeIcon: '/images/tabbar/create-active.svg', active: false },
       { path: 'pages/gifTools/gifTools', text: 'GIF工具', icon: '/images/tabbar/gif.svg', activeIcon: '/images/tabbar/gif-active.svg', active: false },
@@ -11,15 +12,12 @@ Component({
   lifetimes: {
     attached() { this.syncActive(); }
   },
-  pageLifetimes: {
-    show() { this.syncActive(); }
-  },
   methods: {
     syncActive() {
       const pages = getCurrentPages();
       const current = pages[pages.length - 1];
       const route = current && current.route;
-      this.setData({ tabs: this.data.tabs.map(tab => ({ ...tab, active: tab.path === route })) });
+      this.setData({ selected: route || '' });
     },
     switchTo(e) {
       const path = e.currentTarget.dataset.path;
@@ -28,7 +26,7 @@ Component({
         wx.showToast({ title: '表情仓库即将上线', icon: 'none' });
         return;
       }
-      if (!target || target.active) return;
+      if (!target || target.path === this.data.selected) return;
       wx.switchTab({ url: `/${path}` });
     }
   }

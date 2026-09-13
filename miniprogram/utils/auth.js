@@ -24,6 +24,19 @@ function isAuthorizationDenied(error) {
   return /cancel|deny|denied|取消|拒绝/i.test(message);
 }
 
+function confirmLogin() {
+  return new Promise(resolve => {
+    wx.showModal({
+      title: '登录提示',
+      content: '该功能需要登录，是否立即登录？',
+      cancelText: '取消',
+      confirmText: '立即登录',
+      success: result => resolve(Boolean(result.confirm)),
+      fail: () => resolve(false)
+    });
+  });
+}
+
 async function startLogin() {
   const cachedUser = getCurrentUser();
   if (cachedUser) {
@@ -35,9 +48,12 @@ async function startLogin() {
     }
   }
 
+  const confirmed = await confirmLogin();
+  if (!confirmed) return null;
+
   let profileResult;
   try {
-    profileResult = await wx.getUserProfile({ description: '用于登录并展示头像昵称' });
+    profileResult = await wx.getUserProfile({ desc: '用于登录并展示头像昵称' });
   } catch (error) {
     if (isAuthorizationDenied(error)) {
       showLoginRequired();

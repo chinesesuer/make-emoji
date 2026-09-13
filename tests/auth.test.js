@@ -5,12 +5,13 @@ const AUTH_PATH = require.resolve('../miniprogram/utils/auth.js');
 
 function createWx(overrides = {}) {
   const storage = new Map();
-  const calls = { checkSession: 0, getUserProfile: 0, login: 0, callFunction: 0, showToast: [], profileOptions: null, cloudOptions: null };
+  const calls = { checkSession: 0, showModal: 0, modalOptions: null, getUserProfile: 0, login: 0, callFunction: 0, showToast: [], profileOptions: null, cloudOptions: null };
   const wx = {
     getStorageSync(key) { return storage.get(key); },
     setStorageSync(key, value) { storage.set(key, value); },
     removeStorageSync(key) { storage.delete(key); },
     checkSession() { calls.checkSession += 1; return Promise.resolve(); },
+    showModal(options) { calls.showModal += 1; calls.modalOptions = options; options.success({ confirm: true, cancel: false }); },
     getUserProfile(options) { calls.getUserProfile += 1; calls.profileOptions = options; return Promise.resolve({ userInfo: { nickName: '小明' } }); },
     login() { calls.login += 1; return Promise.resolve({ code: 'login-code' }); },
     cloud: { callFunction(options) { calls.callFunction += 1; calls.cloudOptions = options; return Promise.resolve({ result: { success: true, user: { openid: 'openid-1', nickName: '小明' } } }); } },
@@ -41,7 +42,37 @@ test('有效缓存会直接返回用户且不请求授权或云函数', async ()
 
   assert.equal(user, cachedUser);
   assert.equal(calls.checkSession, 1);
+  assert.equal(calls.showModal, 0);
   assert.equal(calls.getUserProfile, 0);
+  assert.equal(calls.callFunction, 0);
+});
+
+test('首次登录会先询问用户，确认后才请求微信授权', async () => {
+  const { wx, calls } = createWx();
+  const auth = loadAuth(wx);
+
+  const user = await auth.ensureLogin();
+
+  assert.equal(user.openid, 'openid-1');
+  assert.equal(calls.showModal, 1);
+  assert.equal(calls.modalOptions.title, '登录提示');
+  assert.equal(calls.modalOptions.content, '该功能需要登录，是否立即登录？');
+  assert.equal(calls.modalOptions.cancelText, '取消');
+  assert.equal(calls.modalOptions.confirmText, '立即登录');
+  assert.equal(calls.getUserProfile, 1);
+});
+
+test('用户取消登录询问时不会请求授权或执行云端登录', async () => {
+  const { wx, calls } = createWx({
+    showModal(options) { calls.showModal += 1; calls.modalOptions = options; options.success({ confirm: false, cancel: true }); }
+  });
+  const auth = loadAuth(wx);
+
+  const user = await auth.ensureLogin();
+
+  assert.equal(user, null);
+  assert.equal(calls.getUserProfile, 0);
+  assert.equal(calls.login, 0);
   assert.equal(calls.callFunction, 0);
 });
 
@@ -72,7 +103,7 @@ test('首次登录请求资料、登录和云函数并缓存返回用户', async
   assert.equal(calls.getUserProfile, 1);
   assert.equal(calls.login, 1);
   assert.equal(calls.callFunction, 1);
-  assert.deepEqual(calls.profileOptions, { description: '用于登录并展示头像昵称' });
+  assert.deepEqual(calls.profileOptions, { desc: '用于登录并展示头像昵称' });
   assert.deepEqual(calls.cloudOptions, {
     name: 'quickstartFunctions',
     data: { type: 'login', profile: { nickName: '小明' } }

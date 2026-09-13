@@ -61,6 +61,45 @@ test('首次登录创建一条用户记录', async () => {
   assert.deepEqual(db.records, [{ _id: 'user-1', _openid: 'trusted-openid', nickName: '小明', avatarUrl: 'https://avatar.example/a.png', lastLoginAt: now, createdAt: now }]);
 });
 
+test('users 集合不存在时自动创建后完成登录', async () => {
+  const db = createDatabase();
+  let collectionReady = false;
+  const originalCollection = db.collection;
+  db.collection = function collection(name) {
+    const users = originalCollection.call(this, name);
+    const originalWhere = users.where;
+    users.where = function where(query) {
+      const operation = originalWhere.call(this, query);
+      const originalLimit = operation.limit;
+      operation.limit = function limit(value) {
+        const request = originalLimit.call(this, value);
+        const originalGet = request.get;
+        request.get = async function get() {
+          if (!collectionReady) {
+            const error = new Error('collection users not exists');
+            error.errCode = -502005;
+            throw error;
+          }
+          return originalGet.call(this);
+        };
+        return request;
+      };
+      return operation;
+    };
+    return users;
+  };
+  db.createCollection = async name => {
+    assert.equal(name, 'users');
+    collectionReady = true;
+  };
+
+  const result = await loginUser({ db, openid: 'trusted-openid', profile: { nickName: '小明' } });
+
+  assert.equal(result.success, true);
+  assert.equal(db.records.length, 1);
+  assert.equal(db.records[0]._openid, 'trusted-openid');
+});
+
 test('重复登录更新已有用户而不创建重复记录', async () => {
   const db = createDatabase();
   await loginUser({ db, openid: 'trusted-openid', profile: { nickName: '旧昵称' }, now: new Date('2026-09-12T00:00:00.000Z') });

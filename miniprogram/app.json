@@ -21,6 +21,15 @@
     "navigationBarTitleText": "云开发 QuickStart",
     "navigationBarTextStyle": "black"
   },
+  "tabBar": {
+    "custom": true,
+    "list": [
+      { "pagePath": "pages/index/index", "text": "制作表情" },
+      { "pagePath": "pages/gifTools/gifTools", "text": "GIF工具" },
+      { "pagePath": "pages/moreTools/moreTools", "text": "更多工具" },
+      { "pagePath": "pages/profile/profile", "text": "个人中心" }
+    ]
+  },
   "permission": {
     "scope.writePhotosAlbum": {
       "desc": "用于将生成的表情图片保存到手机相册"

@@ -6,11 +6,4 @@
     <view class="list-card"><view class="list-row" bindtap="comingSoon"><text class="list-icon blue">☏</text><text class="row-title">联系我们</text><text class="row-sub">反馈与建议</text><text>›</text></view><view class="list-row" bindtap="comingSoon"><text class="list-icon purple">i</text><text class="row-title">关于我们</text><text class="row-sub">v6.6.11</text><text>›</text></view></view>
     <view class="thanks">感谢您的使用与支持</view>
   </scroll-view>
-  <view class="profile-tabbar">
-    <view class="profile-tab" bindtap="backToCreate"><image class="tab-icon" src="/images/tabbar/create.svg"/><text>制作表情</text></view>
-    <view class="profile-tab"><image class="tab-icon" src="/images/tabbar/gif.svg"/><text>GIF工具</text></view>
-    <view class="profile-tab"><image class="tab-icon" src="/images/tabbar/warehouse.svg"/><text>表情仓库</text></view>
-    <view class="profile-tab" bindtap="goMoreTools"><image class="tab-icon" src="/images/tabbar/tools.svg"/><text>更多工具</text></view>
-    <view class="profile-tab active"><image class="tab-icon" src="/images/tabbar/profile-active.svg"/><text>个人中心</text></view>
-  </view>
 </view>

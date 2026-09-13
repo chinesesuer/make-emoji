@@ -11,17 +11,6 @@ Page({
     this.sceneLoadTasks = {};
     this.materialsReady = this.loadCloudMaterials();
   },
-  onReady() {
-    // 首页完成首屏渲染后预加载 GIF 工具页，避免点击时集中创建页面、解析图标。
-    if (typeof wx.preloadPage === 'function') {
-      this.gifPreloadTimer = setTimeout(() => {
-        wx.preloadPage({ url: '/pages/gifTools/gifTools', fail: () => {} });
-      }, 300);
-    }
-  },
-  onUnload() {
-    if (this.gifPreloadTimer) clearTimeout(this.gifPreloadTimer);
-  },
   async loadCloudMaterials() {
     // 首屏只请求身体素材，防止表情、挂件的云端请求抢占首屏网络。
     const bodyMaterials = await this.loadSceneMaterials('body');
@@ -329,7 +318,5 @@ Page({
     });
   },
   chooseTextStyle(e) {this.setData({textStyle:e.currentTarget.dataset.index});}, chooseColor(e) {this.setData({textColor:e.currentTarget.dataset.color});}, choosePosition(e) {this.setData({textPosition:e.currentTarget.dataset.position});},
-  goGifTools() { wx.navigateTo({ url: '/pages/gifTools/gifTools' }); },
-  goMoreTools() { wx.navigateTo({ url: '/pages/moreTools/moreTools' }); },
-  goProfile() {wx.navigateTo({url:'/pages/profile/profile'});}, saveImage() {wx.showToast({title:'表情已保存',icon:'success'});}, saveToWarehouse() {wx.showToast({title:'已存入表情仓库',icon:'success'});}, share() {wx.showToast({title:'点击右上角分享给好友',icon:'none'});}
+  saveImage() {wx.showToast({title:'表情已保存',icon:'success'});}, saveToWarehouse() {wx.showToast({title:'已存入表情仓库',icon:'success'});}, share() {wx.showToast({title:'点击右上角分享给好友',icon:'none'});}
 });

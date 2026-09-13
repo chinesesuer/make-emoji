@@ -49,11 +49,4 @@
     <view class="bottom-space"/>
   </scroll-view>
 
-  <view class="tabbar">
-    <view class="tab" bindtap="goCreate"><image class="tab-icon" src="/images/tabbar/create.svg"/><text>制作表情</text></view>
-    <view class="tab" bindtap="goGifTools"><image class="tab-icon" src="/images/tabbar/gif.svg"/><text>GIF工具</text></view>
-    <view class="tab"><image class="tab-icon" src="/images/tabbar/warehouse.svg"/><text>表情仓库</text></view>
-    <view class="tab active"><image class="tab-icon" src="/images/tabbar/tools-active.svg"/><text>更多工具</text></view>
-    <view class="tab" bindtap="goProfile"><image class="tab-icon" src="/images/tabbar/profile.svg"/><text>个人中心</text></view>
-  </view>
 </view>

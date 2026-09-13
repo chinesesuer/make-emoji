@@ -10,3 +10,13 @@
 
 - [云开发文档](https://developers.weixin.qq.com/miniprogram/dev/wxcloud/basis/getting-started.html)
 
+## 微信用户登录部署与验收
+
+1. 在微信开发者工具中重新上传并部署 `cloudfunctions/quickstartFunctions`，选择“云端安装依赖”。
+2. 在云开发数据库中创建 `users` 集合，并确认 `quickstartFunctions` 云函数具备写入权限。用户身份只使用云端微信上下文中的 `OPENID`。
+3. 首次验收前，在开发者工具的 Storage 中删除普通用户缓存键 `emojiUserSession`。管理员登录仍使用独立的 `adminToken`，不受影响。
+4. 点击首页“存表情”的生成按钮并授权，确认授权成功后自动继续生成；再次生成不应重复弹出授权。
+5. 删除 `emojiUserSession` 后进入“视频转 GIF”，取消登录时不应打开视频选择器；再次点击并完成登录后，应自动继续打开选择器。
+6. 登录后依次验证多图 GIF、GIF 加文字、表情混合、DIY 和九宫格工具的选择、生成与保存，不应重复请求授权。
+7. 进入个人中心，确认显示当前微信用户的头像和昵称；未登录时显示“点击登录”。
+

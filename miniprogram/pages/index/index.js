@@ -1,4 +1,5 @@
 const { splitIntoBatches, applyTemporaryUrls } = require('../../utils/material-loader');
+const { ensureLogin } = require('../../utils/auth');
 
 // 返回首页或从其它页面回退时复用已获得的素材地址，避免重复走云端请求。
 const materialMemoryCache = { body: null, face: null, accessory: null };
@@ -280,6 +281,8 @@ Page({
       return;
     }
     if (this.data.generating) return;
+    const user = await ensureLogin();
+    if (!user) return;
     this.setData({ generating: true });
     wx.showLoading({ title: '生成中' });
     try {
@@ -319,8 +322,10 @@ Page({
     }
   },
   closeResult() { this.setData({ resultVisible: false }); },
-  saveGeneratedImage() {
+  async saveGeneratedImage() {
     if (!this.data.generatedImage) return;
+    const user = await ensureLogin();
+    if (!user) return;
     wx.saveImageToPhotosAlbum({
       filePath: this.data.generatedImage,
       success: () => wx.showToast({ title: '已保存到相册', icon: 'success' }),

@@ -1,3 +1,5 @@
+const { ensureLogin } = require('../../utils/auth');
+
 Page({
   data: {
     video: null,
@@ -31,6 +33,8 @@ Page({
   },
   async chooseVideo() {
     if (this.data.auditing) return;
+    const user = await ensureLogin();
+    if (!user) return;
     try {
       const picked = await wx.chooseMedia({ count: 1, mediaType: ['video'], sourceType: ['album', 'camera'], maxDuration: 60 });
       if (!picked.tempFiles || !picked.tempFiles.length) return;
@@ -128,10 +132,8 @@ Page({
       this.setData({ auditing: false });
     }
   },
-  changeVideo() {
-    const old = this.data.video;
-    this.setData({ video: null, crop: null });
-    if (old && old.auditFileID) wx.cloud.deleteFile({ fileList: [old.auditFileID] }).catch(() => {});
+  async changeVideo() {
+    return this.chooseVideo();
   },
   openCrop() {
     const video = this.data.video;
@@ -149,6 +151,8 @@ Page({
   loopPlus() { if (this.data.loop) this.setData({ loop: Math.min(99, this.data.loop + 1) }); },
   async startConvert() {
     if (!this.data.video || this.data.converting) return;
+    const user = await ensureLogin();
+    if (!user) return;
     this.setData({ converting: true });
     wx.showLoading({ title: '正在转换GIF', mask: true });
     try {
@@ -184,8 +188,10 @@ Page({
     }
   },
   closeResult() { this.setData({ resultVisible: false }); },
-  saveGif() {
+  async saveGif() {
     if (!this.data.generatedGif) return;
+    const user = await ensureLogin();
+    if (!user) return;
     wx.saveImageToPhotosAlbum({
       filePath: this.data.generatedGif,
       success: () => wx.showToast({ title: '已保存到相册', icon: 'success' }),

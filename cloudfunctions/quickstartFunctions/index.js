@@ -4,6 +4,7 @@ cloud.init({
 });
 
 const db = cloud.database();
+const { loginUser } = require('./user-login');
 // 获取openid
 const getOpenId = async () => {
   // 获取基础信息
@@ -181,5 +182,9 @@ exports.main = async (event, context) => {
       return await insertRecord(event);
     case "deleteRecord":
       return await deleteRecord(event);
+    case "login": {
+      const openid = cloud.getWXContext().OPENID;
+      return await loginUser({ db, openid, profile: event.profile });
+    }
   }
 };

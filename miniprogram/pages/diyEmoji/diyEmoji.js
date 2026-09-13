@@ -146,18 +146,19 @@ Page({
   },
 
   async chooseMaterial(e) {
+    const index = Number(e.currentTarget.dataset.index);
+    const category = this.data.category;
     if (this._choosingMaterial) return;
     this._choosingMaterial = true;
     let user;
     try { user = await ensureLogin(); } catch (_) { this._choosingMaterial = false; return; }
     if (!user) { this._choosingMaterial = false; return; }
     try {
-      const index = Number(e.currentTarget.dataset.index);
       this.snapshot();
-      if (this.data.category === 0) this.state.face = index;
-      else if (this.data.category === 1) this.state.eyes = this.state.eyes === index ? null : index;
-      else if (this.data.category === 2) this.state.pupil = this.state.pupil === index ? null : index;
-      else if (this.data.category === 3) this.state.mouth = this.state.mouth === index ? null : index;
+      if (category === 0) this.state.face = index;
+      else if (category === 1) this.state.eyes = this.state.eyes === index ? null : index;
+      else if (category === 2) this.state.pupil = this.state.pupil === index ? null : index;
+      else if (category === 3) this.state.mouth = this.state.mouth === index ? null : index;
       else {
         const at = this.state.decorations.indexOf(index);
         if (at >= 0) this.state.decorations.splice(at, 1);

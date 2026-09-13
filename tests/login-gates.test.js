@@ -88,7 +88,8 @@ function assertLoginPrecedes(relativePath, method, sideEffect) {
   assert.notEqual(login, -1, `${method} awaits ensureLogin`);
   assert.notEqual(effect, -1, `${method} performs ${sideEffect}`);
   assert.ok(login < effect, `${method} authenticates before ${sideEffect}`);
-  assert.ok(body.indexOf('if (!user)', login) > login, `${method} exits after a cancelled login`);
+  const cancelled = body.indexOf('if (!user)', login);
+  assert.ok(cancelled > login && cancelled < effect, `${method} exits after a cancelled login before ${sideEffect}`);
 }
 
 test('其余创作工具在实际副作用前完成登录检查', () => {
@@ -180,6 +181,72 @@ test('登录等待期间重复点击不会重复打开选择器、生成或保�
   assert.equal(calls.filter(([name]) => name === 'chooseMedia').length, 1);
   assert.equal(generate.updates.filter(update => update.generating === true).length, 1);
   assert.equal(calls.filter(([name]) => name === 'saveImage').length, 1);
+});
+
+test('DIY 选择在登录等待期间使用点击时快照的分类和素材索引', async () => {
+  installWx();
+  const login = deferred();
+  const diy = loadPage('pages/diyEmoji/diyEmoji.js', () => login.promise);
+  const context = pageContext(diy, { category: 0 }, {
+    history: [],
+    state: { face: 0, eyes: 1, pupil: 0, mouth: 0, decorations: [] },
+    refresh() {}
+  });
+
+  const selecting = context.chooseMaterial({ currentTarget: { dataset: { index: 3 } } });
+  context.data.category = 1;
+  login.resolve({ openid: 'user-1' });
+  await selecting;
+
+  assert.equal(context.state.face, 3);
+  assert.equal(context.state.eyes, 1);
+});
+
+test('代表性选择、生成和保存锁会在取消、登录异常和完成后释放', async () => {
+  const calls = installWx();
+  const from = outcomes => async () => {
+    const outcome = outcomes.shift();
+    if (outcome instanceof Error) throw outcome;
+    return outcome;
+  };
+  const gifImages = loadPage('pages/gifImages/gifImages.js', from([null, { openid: 'user-1' }, { openid: 'user-1' }]));
+  const gifText = loadPage('pages/gifText/gifText.js', from([new Error('login failed'), { openid: 'user-1' }, { openid: 'user-1' }]));
+  const mixer = loadPage('pages/emojiMixer/emojiMixer.js', from([null, { openid: 'user-1' }, { openid: 'user-1' }]));
+  const choose = pageContext(gifImages, { images: [] });
+  const generate = pageContext(gifText, { text: 'hi', generating: false }, { createOverlay: async () => '/tmp/overlay.png' });
+  const save = pageContext(mixer, { resultType: 'fallback', saving: false }, { renderFallbackImage: async () => '/tmp/mix.png' });
+  global.wx.cloud.uploadFile = async () => ({ fileID: 'overlay-id' });
+
+  await choose.chooseImages();
+  await generate.generate();
+  await save.saveEmoji();
+  await choose.chooseImages();
+  await generate.generate();
+  await save.saveEmoji();
+  await choose.chooseImages();
+  await generate.generate();
+  await save.saveEmoji();
+
+  assert.equal(calls.filter(([name]) => name === 'chooseMedia').length, 2);
+  assert.equal(generate.updates.filter(update => update.generating === true).length, 2);
+  assert.equal(calls.filter(([name]) => name === 'saveImage').length, 2);
+});
+
+test('GIF 生成在登录取消或异常时不隐藏未显示的加载框', async () => {
+  const cancelledCalls = installWx();
+  const imagesCancelled = loadPage('pages/gifImages/gifImages.js', async () => null);
+  const textCancelled = loadPage('pages/gifText/gifText.js', async () => null);
+  await pageContext(imagesCancelled, { images: [{ path: 'a' }, { path: 'b' }], generating: false }).generateGif();
+  await pageContext(textCancelled, { text: 'hi', generating: false }).generate();
+  assert.equal(cancelledCalls.some(([name]) => name === 'hideLoading'), false);
+
+  const failedCalls = installWx();
+  const failed = async () => { throw new Error('login failed'); };
+  const imagesFailed = loadPage('pages/gifImages/gifImages.js', failed);
+  const textFailed = loadPage('pages/gifText/gifText.js', failed);
+  await pageContext(imagesFailed, { images: [{ path: 'a' }, { path: 'b' }], generating: false }).generateGif();
+  await pageContext(textFailed, { text: 'hi', generating: false }).generate();
+  assert.equal(failedCalls.some(([name]) => name === 'hideLoading'), false);
 });
 
 test('取消登录会阻止首页生成和保存的副作用', async () => {

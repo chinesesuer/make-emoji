@@ -1,0 +1,8 @@
+<view class="creations-page">
+  <view wx:if="{{loading}}" class="state-view"><view class="spinner"></view><text>正在加载作品...</text></view>
+  <view wx:elif="{{error}}" class="state-view error-state" bindtap="retryLoad"><text>{{error}}</text><text class="retry-text">重新加载</text></view>
+  <view wx:elif="{{!creations.length}}" class="state-view"><text class="empty-icon">◇</text><text>还没有作品，去制作一个吧</text></view>
+  <view wx:else class="creation-grid">
+    <view wx:for="{{creations}}" wx:key="_id" class="creation-card" data-url="{{item.tempFileURL}}" bindtap="previewCreation"><image src="{{item.tempFileURL}}" mode="aspectFill" lazy-load="true"/></view>
+  </view>
+</view>

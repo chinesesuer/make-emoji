@@ -14,6 +14,7 @@ function loadPage(relativePath, ensureLogin) {
     require(request) {
       if (request === '../../utils/auth') return typeof ensureLogin === 'function' ? { ensureLogin } : ensureLogin;
       if (request === '../../utils/material-loader') return { splitIntoBatches: () => [], applyTemporaryUrls: value => value };
+      if (request === '../../utils/creation-fingerprint') return { buildCreationFingerprint: () => '0123456789abcdef' };
       throw new Error(`unexpected import: ${request}`);
     },
     wx: global.wx,
@@ -96,6 +97,7 @@ function installWx() {
     saveImageToPhotosAlbum(options) { calls.push(['saveImage', options.filePath]); options.success(); },
     chooseMedia: async () => { calls.push(['chooseMedia']); return { tempFiles: [] }; },
     cloud: {
+      uploadFile: async () => ({ fileID: 'cloud://creation.png' }),
       callFunction: async () => { calls.push(['cloudCall']); return { result: { success: true, fileID: 'gif-id' } }; },
       downloadFile: async () => ({ tempFilePath: '/tmp/result.gif' }),
       deleteFile: ({ fileList }) => { calls.push(['deleteFile', fileList]); return Promise.resolve(); }

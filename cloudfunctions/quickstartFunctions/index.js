@@ -5,6 +5,7 @@ cloud.init({
 
 const db = cloud.database();
 const { loginUser } = require('./user-login');
+const { saveCreation, listCreations } = require('./creation-service');
 // 获取openid
 const getOpenId = async () => {
   // 获取基础信息
@@ -185,6 +186,19 @@ exports.main = async (event, context) => {
     case "login": {
       const openid = cloud.getWXContext().OPENID;
       return await loginUser({ db, openid, profile: event.profile });
+    }
+    case "saveCreation": {
+      const openid = cloud.getWXContext().OPENID;
+      return await saveCreation({
+        db,
+        ...(event.creation || {}),
+        openid,
+        deleteFiles: fileList => cloud.deleteFile({ fileList })
+      });
+    }
+    case "listCreations": {
+      const openid = cloud.getWXContext().OPENID;
+      return await listCreations({ db, openid, limit: 50 });
     }
   }
 };

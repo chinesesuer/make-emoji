@@ -11,6 +11,7 @@
     "pages/diyEmoji/diyEmoji",
     "pages/gridSlice/gridSlice",
     "pages/profile/profile",
+    "pages/myCreations/myCreations",
     "pages/adminLogin/adminLogin",
     "pages/adminMaterials/adminMaterials"
   ],

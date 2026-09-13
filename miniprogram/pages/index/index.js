@@ -1,5 +1,6 @@
 const { splitIntoBatches, applyTemporaryUrls } = require('../../utils/material-loader');
 const { ensureLogin } = require('../../utils/auth');
+const { buildCreationFingerprint } = require('../../utils/creation-fingerprint');
 
 // 返回首页或从其它页面回退时复用已获得的素材地址，避免重复走云端请求。
 const materialMemoryCache = { body: null, face: null, accessory: null };
@@ -275,6 +276,35 @@ Page({
     });
     ctx.restore();
   },
+  async archiveGeneratedCreation(tempFilePath, fileType, user) {
+    let uploadedFileID = '';
+    try {
+      const fingerprint = buildCreationFingerprint(this.data);
+      const safeOpenid = String(user.openid || 'user').replace(/[^a-zA-Z0-9_-]/g, '_');
+      const extension = fileType === 'jpg' ? 'jpg' : 'png';
+      const upload = await wx.cloud.uploadFile({
+        cloudPath: `user-creations/${safeOpenid}/${fingerprint}-${Date.now()}.${extension}`,
+        filePath: tempFilePath
+      });
+      uploadedFileID = upload.fileID;
+      const response = await wx.cloud.callFunction({
+        name: 'quickstartFunctions',
+        data: {
+          type: 'saveCreation',
+          creation: { fingerprint, fileID: uploadedFileID, fileType: extension }
+        }
+      });
+      if (!response.result || response.result.success !== true) throw new Error('保存作品记录失败');
+      return true;
+    } catch (error) {
+      console.error('archiveGeneratedCreation failed', error);
+      if (uploadedFileID) {
+        try { await wx.cloud.deleteFile({ fileList: [uploadedFileID] }); } catch (cleanupError) { /* 云端定期清理兜底 */ }
+      }
+      wx.showToast({ title: '作品保存失败，请稍后重试', icon: 'none' });
+      return false;
+    }
+  },
   async generateEmoji() {
     if (!this.data.body && !this.data.expression && !this.data.accessory && !this.data.text) {
       wx.showToast({ title: '请先添加素材', icon: 'none' });
@@ -315,6 +345,7 @@ Page({
       const quality = this.data.qualityMode === 'bad' ? 0.35 : this.data.qualityMode === 'compressed' ? 0.6 : 1;
       const tempFilePath = await new Promise((resolve, reject) => wx.canvasToTempFilePath({ canvas, fileType, quality, destWidth: 480, destHeight: 480, success: result => resolve(result.tempFilePath), fail: reject }));
       this.setData({ generatedImage: tempFilePath, resultVisible: true });
+      await this.archiveGeneratedCreation(tempFilePath, fileType, user);
     } catch (error) {
       console.error('generateEmoji failed', error);
       wx.showToast({ title: '生成失败，请重试', icon: 'none' });

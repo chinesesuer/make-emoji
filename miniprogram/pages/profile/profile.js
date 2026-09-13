@@ -19,6 +19,10 @@ Page({
     const user = await ensureLogin();
     if (!user) return;
     this.setData({ user, loggedIn: true });
+    if (e.currentTarget.dataset.action === 'creations') {
+      wx.navigateTo({ url: '/pages/myCreations/myCreations' });
+      return;
+    }
     wx.showToast({ title: `${e.currentTarget.dataset.name}即将上线`, icon: 'none' });
   },
   comingSoon() { wx.showToast({ title: '功能即将上线', icon: 'none' }); }

@@ -90,7 +90,7 @@ Page({
       [`${type}FileUrl`]: typeof item === 'string' ? '' : item.fileUrl,
       activeLayer: type
     };
-    if (type === 'body') Object.assign(updates, { bodyPosition: { x: 50, y: 50 }, bodyTransform: { scale: 1, rotate: 0, flip: false } });
+    if (type === 'body') Object.assign(updates, { bodyPosition: { x: 50, y: 50 }, bodyTransform: { scale: 0.875, rotate: 0, flip: false } });
     if (type === 'expression') Object.assign(updates, { expressionPosition: { x: 50, y: 50 }, expressionTransform: { scale: 5, rotate: 0, flip: false } });
     if (type === 'accessory') Object.assign(updates, { accessoryPosition: { x: 50, y: 50 }, accessoryTransform: { scale: 7, rotate: 0, flip: false } });
     this.setData(updates);

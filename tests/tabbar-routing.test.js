@@ -45,3 +45,8 @@ test('主入口页面显示时会将当前路由同步给共享 TabBar', () => {
     assert.match(source, /onShow\(\)\s*\{[\s\S]*?getTabBar\(\)[\s\S]*?selected:\s*this\.route/);
   });
 });
+
+test('选择身体素材时以原视觉尺寸的七分之八进入画布', () => {
+  const source = fs.readFileSync(path.join(__dirname, '..', 'miniprogram', 'pages', 'index/index.js'), 'utf8');
+  assert.match(source, /type === 'body'.*?bodyTransform: \{ scale: 0\.875, rotate: 0, flip: false \}/);
+});

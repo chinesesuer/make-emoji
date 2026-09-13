@@ -18,10 +18,10 @@
   </scroll-view>
 
   <view class="gif-tabbar">
-    <view class="gif-tab" bindtap="goCreate">◆<text>制作表情</text></view>
-    <view class="gif-tab active">GIF<text>GIF工具</text></view>
-    <view class="gif-tab" bindtap="comingSoon">☻<text>表情仓库</text></view>
-    <view class="gif-tab" bindtap="goMoreTools">▦<text>更多工具</text></view>
-    <view class="gif-tab" bindtap="goProfile">♟<text>个人中心</text></view>
+    <view class="gif-tab" bindtap="goCreate"><image class="tab-icon" src="/images/tabbar/create.svg"/><text>制作表情</text></view>
+    <view class="gif-tab active"><image class="tab-icon" src="/images/tabbar/gif-active.svg"/><text>GIF工具</text></view>
+    <view class="gif-tab" bindtap="comingSoon"><image class="tab-icon" src="/images/tabbar/warehouse.svg"/><text>表情仓库</text></view>
+    <view class="gif-tab" bindtap="goMoreTools"><image class="tab-icon" src="/images/tabbar/tools.svg"/><text>更多工具</text></view>
+    <view class="gif-tab" bindtap="goProfile"><image class="tab-icon" src="/images/tabbar/profile.svg"/><text>个人中心</text></view>
   </view>
 </view>

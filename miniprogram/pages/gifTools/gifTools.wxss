@@ -13,7 +13,8 @@ page{background:#f1f5f9}
 .tool-icon-box{width:92rpx;height:92rpx;margin-bottom:14rpx;border-radius:24rpx;background:#5b5fe9;display:flex;align-items:center;justify-content:center;box-shadow:0 9rpx 18rpx rgba(91,95,233,.25)}
 .tool-icon-box image{width:42rpx;height:42rpx}
 .tool-item text{white-space:nowrap}
-.gif-tabbar{height:106rpx;background:#fff;display:flex;flex-shrink:0}
-.gif-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#98a2ba;font-size:28rpx}
-.gif-tab text{font-size:19rpx}
+.gif-tabbar{height:112rpx;background:rgba(255,255,255,.98);border-top:1rpx solid #edf0f6;display:flex;flex-shrink:0;padding:8rpx 2rpx 6rpx;box-sizing:border-box}
+.gif-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#98a2ba}
+.tab-icon{width:38rpx;height:38rpx;margin-bottom:3rpx;display:block;flex-shrink:0}
+.gif-tab text{font-size:19rpx;line-height:26rpx}
 .gif-tab.active{color:#5b5fe9}

@@ -1,3 +1,8 @@
+const { splitIntoBatches, applyTemporaryUrls } = require('../../utils/material-loader');
+
+// 返回首页或从其它页面回退时复用已获得的素材地址，避免重复走云端请求。
+const materialMemoryCache = { body: null, face: null, accessory: null };
+
 Page({
   data: { currentStep: 0, steps: ['选身体','选表情','选挂件','贴文字','存表情'], categories: [[], [], []], categoryIndex: 0, selectedBody: -1, selectedExpression: -1, selectedAccessory: -1, bodies: [], expressions: [], accessories: [], body: '', expression: '', accessory: '', text: '', textInput: '', textStyle: 0, textColor: '#111111', strokeColor: '#ffffff', textPosition: 'bottom', hotTexts: [], textBold: false, textStroke: true, activeLayer: '', bodyPosition: { x: 50, y: 50 }, expressionPosition: { x: 42, y: 56 }, accessoryPosition: { x: 62, y: 38 }, textPositionData: { x: 50, y: 84 }, bodyTransform: { scale: 1, rotate: 0, flip: false }, expressionTransform: { scale: 1, rotate: 0, flip: false }, accessoryTransform: { scale: 1, rotate: 0, flip: false }, textTransform: { scale: 1, rotate: 0, flip: false }, convertEmoji: false, transparentBackground: false, saveSize: 'large', saveScale: 1, previewScale: 1, qualityMode: 'compressed', generating: false, generatedImage: '', resultVisible: false },
   onLoad() {
@@ -18,35 +23,59 @@ Page({
     if (this.gifPreloadTimer) clearTimeout(this.gifPreloadTimer);
   },
   async loadCloudMaterials() {
-    const scenes = [{ scene: 'body', key: 'bodies' }, { scene: 'face', key: 'expressions' }, { scene: 'accessory', key: 'accessories' }];
-    await Promise.all(scenes.map(async ({ scene, key }) => {
-      try {
-        const { result } = await wx.cloud.callFunction({ name: 'materialService', data: { scene } });
-        if (result.success) {
-          const categories = this.data.categories.slice();
-          const sceneIndex = scenes.findIndex(item => item.scene === scene);
-          categories[sceneIndex] = [...new Set(result.list.map(item => item.categoryName).filter(Boolean))];
-          this.materialsByScene[scene] = result.list;
-          this.setData({ categories });
-        }
-      } catch (_) { /* 云环境未配置或请求失败时保持空列表 */ }
-    }));
-    await this.loadSceneImages('body');
-    // 空闲时预取另外两类素材，后续切换标签直接使用本地路径。
-    this.loadSceneImages('face');
-    this.loadSceneImages('accessory');
+    // 首屏只请求身体素材，防止表情、挂件的云端请求抢占首屏网络。
+    const bodyMaterials = await this.loadSceneMaterials('body');
+    setTimeout(() => {
+      this.loadSceneMaterials('face');
+      this.loadSceneMaterials('accessory');
+    }, 0);
+    return bodyMaterials;
+  },
+  async loadSceneMaterials(scene) {
+    const sourceMap = { body: 'bodies', face: 'expressions', accessory: 'accessories' };
+    const sceneIndexMap = { body: 0, face: 1, accessory: 2 };
+    const cached = materialMemoryCache[scene];
+    if (cached) {
+      this.materialsByScene[scene] = cached;
+      const categories = this.data.categories.slice();
+      categories[sceneIndexMap[scene]] = [...new Set(cached.map(item => item.categoryName).filter(Boolean))];
+      this.setData({ categories, [sourceMap[scene]]: cached });
+      return cached;
+    }
+    try {
+      const { result } = await wx.cloud.callFunction({ name: 'materialService', data: { scene } });
+      if (!result.success) return [];
+      this.materialsByScene[scene] = result.list;
+      const categories = this.data.categories.slice();
+      categories[sceneIndexMap[scene]] = [...new Set(result.list.map(item => item.categoryName).filter(Boolean))];
+      this.setData({ categories });
+      return this.loadSceneImages(scene);
+    } catch (_) {
+      return [];
+    }
   },
   async loadSceneImages(scene) {
     const sourceMap = { body: 'bodies', face: 'expressions', accessory: 'accessories' };
     if (this.sceneLoadTasks[scene]) return this.sceneLoadTasks[scene];
-    this.sceneLoadTasks[scene] = Promise.all((this.materialsByScene[scene] || []).map(async item => {
-      if (!item.fileUrl || this.localFileCache[item.fileUrl]) return { ...item, fileUrl: this.localFileCache[item.fileUrl] || item.fileUrl };
-      try {
-        const result = await wx.cloud.downloadFile({ fileID: item.fileUrl });
-        this.localFileCache[item.fileUrl] = result.tempFilePath;
-        return { ...item, fileUrl: result.tempFilePath };
-      } catch (_) { return item; }
-    })).then(list => this.setData({ [sourceMap[scene]]: list }));
+    this.sceneLoadTasks[scene] = (async () => {
+      const source = this.materialsByScene[scene] || [];
+      const fileIds = [...new Set(source.map(item => item.fileUrl).filter(Boolean))];
+      const urlMap = {};
+      // 批量换取临时地址，替代逐张 downloadFile 下载原图。
+      await Promise.all(splitIntoBatches(fileIds, 50).map(async fileList => {
+        try {
+          const result = await wx.cloud.getTempFileURL({ fileList });
+          (result.fileList || []).forEach(file => {
+            if (file.fileID && file.tempFileURL) urlMap[file.fileID] = file.tempFileURL;
+          });
+        } catch (_) { /* 保留原文件 ID，让 image 组件自行兜底 */ }
+      }));
+      const list = applyTemporaryUrls(source, urlMap);
+      this.materialsByScene[scene] = list;
+      materialMemoryCache[scene] = list;
+      this.setData({ [sourceMap[scene]]: list });
+      return list;
+    })();
     return this.sceneLoadTasks[scene];
   },
   chooseStep(e) {
@@ -54,7 +83,7 @@ Page({
     const sceneMap = ['body', 'expression', 'accessory'];
     this.setData({ currentStep: index, categoryIndex: 0, activeLayer: sceneMap[index] || this.data.activeLayer, previewScale: index === 4 ? this.data.saveScale : 1 });
     const cloudSceneMap = ['body', 'face', 'accessory'];
-    if (cloudSceneMap[index]) this.materialsReady.then(() => this.loadSceneImages(cloudSceneMap[index]));
+    if (cloudSceneMap[index]) this.loadSceneMaterials(cloudSceneMap[index]);
   },
   chooseCategory(e) { this.setData({categoryIndex:e.currentTarget.dataset.index}); },
   chooseItem(e) {

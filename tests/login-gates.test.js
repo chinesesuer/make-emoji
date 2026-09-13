@@ -49,7 +49,7 @@ function installWx() {
     cloud: {
       callFunction: async () => { calls.push(['cloudCall']); return { result: { success: true, fileID: 'gif-id' } }; },
       downloadFile: async () => ({ tempFilePath: '/tmp/result.gif' }),
-      deleteFile: () => Promise.resolve()
+      deleteFile: ({ fileList }) => { calls.push(['deleteFile', fileList]); return Promise.resolve(); }
     }
   };
   return calls;

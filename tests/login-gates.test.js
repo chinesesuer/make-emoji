@@ -41,6 +41,7 @@ function installWx() {
   const calls = [];
   global.wx = {
     showToast(options) { calls.push(['toast', options]); },
+    showModal(options) { calls.push(['modal', options]); },
     showLoading(options) { calls.push(['loading', options]); },
     hideLoading() { calls.push(['hideLoading']); },
     canvasToTempFilePath(options) { calls.push(['canvasExport']); options.success({ tempFilePath: '/tmp/emoji.png' }); },
@@ -246,6 +247,23 @@ test('GIF 生成在登录取消或异常时不隐藏未显示的加载框', asyn
   const textFailed = loadPage('pages/gifText/gifText.js', failed);
   await pageContext(imagesFailed, { images: [{ path: 'a' }, { path: 'b' }], generating: false }).generateGif();
   await pageContext(textFailed, { text: 'hi', generating: false }).generate();
+  assert.equal(failedCalls.some(([name]) => name === 'hideLoading'), false);
+});
+
+test('GIF 选择在登录取消或异常时不隐藏未显示的加载框', async () => {
+  const cancelledCalls = installWx();
+  const imagesCancelled = loadPage('pages/gifImages/gifImages.js', async () => null);
+  const textCancelled = loadPage('pages/gifText/gifText.js', async () => null);
+  await pageContext(imagesCancelled, { images: [] }).chooseImages();
+  await pageContext(textCancelled, {}).chooseGif();
+  assert.equal(cancelledCalls.some(([name]) => name === 'hideLoading'), false);
+
+  const failedCalls = installWx();
+  const failed = async () => { throw new Error('login failed'); };
+  const imagesFailed = loadPage('pages/gifImages/gifImages.js', failed);
+  const textFailed = loadPage('pages/gifText/gifText.js', failed);
+  await pageContext(imagesFailed, { images: [] }).chooseImages();
+  await pageContext(textFailed, {}).chooseGif();
   assert.equal(failedCalls.some(([name]) => name === 'hideLoading'), false);
 });
 

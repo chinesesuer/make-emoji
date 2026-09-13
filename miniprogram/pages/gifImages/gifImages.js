@@ -48,12 +48,13 @@ Page({
     if (available <= 0) return wx.showToast({ title: '最多选择20张', icon: 'none' });
     if (this._choosingImages) return;
     this._choosingImages = true;
+    let loadingShown = false;
     try {
       const user = await ensureLogin();
       if (!user) return;
       const result = await wx.chooseMedia({ count: available, mediaType: ['image'], sourceType: ['album', 'camera'], sizeType: ['compressed'] });
       if (!result.tempFiles.length) return;
-      wx.showLoading({ title: '图片审核中', mask: true });
+      wx.showLoading({ title: '图片审核中', mask: true }); loadingShown = true;
       const accepted = [];
       for (let i = 0; i < result.tempFiles.length; i += 1) {
         const path = result.tempFiles[i].tempFilePath;
@@ -76,7 +77,7 @@ Page({
       const images = this.data.images.concat(accepted);
       const targetRatio = images.length ? images[0].ratio : 1;
       const hasDifferentRatios = images.some(item => Math.abs(item.ratio - targetRatio) / targetRatio > 0.01);
-      wx.hideLoading();
+      wx.hideLoading(); loadingShown = false;
       const cropMode = hasDifferentRatios ? await this.askCrop() : 'contain';
       // 预览内容宽约 662rpx；统一裁剪时按目标比例反推高度，使预览边界与成品 GIF 一致。
       const previewHeight = cropMode === 'cover' ? Math.max(180, Math.round(662 / targetRatio + 28)) : 390;
@@ -84,7 +85,7 @@ Page({
       if (rejected) wx.showModal({ title: '部分图片未通过审核', content: `${rejected} 张图片被微信内容安全接口判定为需复审或存在风险，未加入列表。`, showCancel: false });
     } catch (error) {
       if (!String(error.errMsg || error.message).includes('cancel')) wx.showModal({ title: '审核服务暂时不可用', content: '图片没有被判定为违规。本次是审核接口超时或网络异常，请稍后重试。', showCancel: false });
-    } finally { wx.hideLoading(); this._choosingImages = false; }
+    } finally { if (loadingShown) wx.hideLoading(); this._choosingImages = false; }
   },
   cleanupCloudFiles(items) {
     const fileList = items.map(item => item.auditFileID).filter(Boolean);

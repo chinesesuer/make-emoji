@@ -28,6 +28,7 @@ Page({
   async chooseGif() {
     if (this._choosingGif) return;
     this._choosingGif = true;
+    let loadingShown = false;
     try {
       const user = await ensureLogin();
       if (!user) return;
@@ -43,18 +44,18 @@ Page({
       if (!file) return;
       const filePath = file.tempFilePath || file.path || '';
       if (!/\.gif(?:\?|$)/i.test(filePath) && file.fileType !== 'gif' && file.type !== 'image/gif') return wx.showToast({ title: '请选择GIF文件', icon: 'none' });
-      wx.showLoading({ title: 'GIF审核中', mask: true });
+      wx.showLoading({ title: 'GIF审核中', mask: true }); loadingShown = true;
       const info = await new Promise((resolve, reject) => wx.getImageInfo({ src: filePath, success: resolve, fail: reject }));
       const auditPreview = await this.createAuditPreview(filePath, info);
       const auditUpload = await wx.cloud.uploadFile({ cloudPath: `gif-audit/${Date.now()}-${Math.random().toString(36).slice(2)}.png`, filePath: auditPreview });
       let check;
       try { check = await this.audit(auditUpload.fileID); } finally { await wx.cloud.deleteFile({ fileList: [auditUpload.fileID] }).catch(() => {}); }
       if (!check.success) return wx.showModal({ title: 'GIF未通过审核', content: '微信内容安全接口判定该文件需复审或存在风险。', showCancel: false });
-      wx.showLoading({ title: '正在载入GIF', mask: true });
+      wx.showLoading({ title: '正在载入GIF', mask: true }); loadingShown = true;
       const up = await wx.cloud.uploadFile({ cloudPath: `gif-text/${Date.now()}-${Math.random().toString(36).slice(2)}.gif`, filePath });
       this.cleanup(); const ratio = info.width / info.height; const stageHeight = Math.max(260, Math.min(620, Math.round(662 / ratio)));
       this.setData({ gifPath: filePath, auditFileID: up.fileID, sourceWidth: info.width, sourceHeight: info.height, stageHeight, textX: 80, textY: Math.round(stageHeight / 3), textScale: 1 }, () => setTimeout(() => this.measureStage(), 50));
-    } catch (e) { if (!String(e.errMsg || e.message).includes('cancel')) wx.showModal({ title: '审核服务暂时不可用', content: '本次未判定为违规，请稍后重试。', showCancel: false }); } finally { wx.hideLoading(); this._choosingGif = false; }
+    } catch (e) { if (!String(e.errMsg || e.message).includes('cancel')) wx.showModal({ title: '审核服务暂时不可用', content: '本次未判定为违规，请稍后重试。', showCancel: false }); } finally { if (loadingShown) wx.hideLoading(); this._choosingGif = false; }
   },
   measureStage() { this.createSelectorQuery().select('#stage').boundingClientRect(r => r && this.setData({ stageWidthPx: r.width, stageHeightPx: r.height })).exec(); },
   cleanup() { if (this.data.auditFileID) wx.cloud.deleteFile({ fileList: [this.data.auditFileID] }).catch(() => {}); },

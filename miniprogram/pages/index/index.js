@@ -4,7 +4,7 @@ const { splitIntoBatches, applyTemporaryUrls } = require('../../utils/material-l
 const materialMemoryCache = { body: null, face: null, accessory: null };
 
 Page({
-  data: { currentStep: 0, steps: ['选身体','选表情','选挂件','贴文字','存表情'], categories: [[], [], []], categoryIndex: 0, selectedBody: -1, selectedExpression: -1, selectedAccessory: -1, bodies: [], expressions: [], accessories: [], body: '', expression: '', accessory: '', text: '', textInput: '', textStyle: 0, textColor: '#111111', strokeColor: '#ffffff', textPosition: 'bottom', hotTexts: [], textBold: false, textStroke: true, activeLayer: '', bodyPosition: { x: 50, y: 50 }, expressionPosition: { x: 42, y: 56 }, accessoryPosition: { x: 62, y: 38 }, textPositionData: { x: 50, y: 84 }, bodyTransform: { scale: 1, rotate: 0, flip: false }, expressionTransform: { scale: 1, rotate: 0, flip: false }, accessoryTransform: { scale: 1, rotate: 0, flip: false }, textTransform: { scale: 1, rotate: 0, flip: false }, convertEmoji: false, transparentBackground: false, saveSize: 'large', saveScale: 1, previewScale: 1, qualityMode: 'compressed', generating: false, generatedImage: '', resultVisible: false },
+  data: { currentStep: 0, steps: ['选身体','选表情','选挂件','贴文字','存表情'], categories: [[], [], []], categoryIndex: 0, selectedBody: -1, selectedExpression: -1, selectedAccessory: -1, bodies: [], expressions: [], accessories: [], visibleAssets: [], body: '', expression: '', accessory: '', text: '', textInput: '', textStyle: 0, textColor: '#111111', strokeColor: '#ffffff', textPosition: 'bottom', hotTexts: [], textBold: false, textStroke: true, activeLayer: '', bodyPosition: { x: 50, y: 50 }, expressionPosition: { x: 42, y: 56 }, accessoryPosition: { x: 62, y: 38 }, textPositionData: { x: 50, y: 84 }, bodyTransform: { scale: 1, rotate: 0, flip: false }, expressionTransform: { scale: 1, rotate: 0, flip: false }, accessoryTransform: { scale: 1, rotate: 0, flip: false }, textTransform: { scale: 1, rotate: 0, flip: false }, convertEmoji: false, transparentBackground: false, saveSize: 'large', saveScale: 1, previewScale: 1, qualityMode: 'compressed', generating: false, generatedImage: '', resultVisible: false },
   onLoad() {
     this.materialsByScene = { body: [], face: [], accessory: [] };
     this.localFileCache = {};
@@ -32,7 +32,7 @@ Page({
       this.materialsByScene[scene] = cached;
       const categories = this.data.categories.slice();
       categories[sceneIndexMap[scene]] = [...new Set(cached.map(item => item.categoryName).filter(Boolean))];
-      this.setData({ categories, [sourceMap[scene]]: cached });
+      this.setData({ categories, [sourceMap[scene]]: cached }, () => this.refreshVisibleAssets());
       return cached;
     }
     try {
@@ -66,7 +66,7 @@ Page({
       const list = applyTemporaryUrls(source, urlMap);
       this.materialsByScene[scene] = list;
       materialMemoryCache[scene] = list;
-      this.setData({ [sourceMap[scene]]: list });
+      this.setData({ [sourceMap[scene]]: list }, () => this.refreshVisibleAssets());
       return list;
     })();
     return this.sceneLoadTasks[scene];
@@ -74,11 +74,21 @@ Page({
   chooseStep(e) {
     const index = e.currentTarget.dataset.index;
     const sceneMap = ['body', 'expression', 'accessory'];
-    this.setData({ currentStep: index, categoryIndex: 0, activeLayer: sceneMap[index] || this.data.activeLayer, previewScale: index === 4 ? this.data.saveScale : 1 });
+    this.setData({ currentStep: index, categoryIndex: 0, activeLayer: sceneMap[index] || this.data.activeLayer, previewScale: index === 4 ? this.data.saveScale : 1 }, () => this.refreshVisibleAssets());
     const cloudSceneMap = ['body', 'face', 'accessory'];
     if (cloudSceneMap[index]) this.loadSceneMaterials(cloudSceneMap[index]);
   },
-  chooseCategory(e) { this.setData({categoryIndex:e.currentTarget.dataset.index}); },
+  chooseCategory(e) { this.setData({ categoryIndex: e.currentTarget.dataset.index }, () => this.refreshVisibleAssets()); },
+  refreshVisibleAssets() {
+    const step = this.data.currentStep;
+    if (step > 2) return;
+    const sourceKey = ['bodies', 'expressions', 'accessories'][step];
+    const category = (this.data.categories[step] || [])[this.data.categoryIndex];
+    const visibleAssets = (this.data[sourceKey] || [])
+      .map((item, sourceIndex) => ({ ...(typeof item === 'string' ? { name: item, fileUrl: item } : item), sourceIndex }))
+      .filter(item => !category || item.categoryName === category);
+    this.setData({ visibleAssets });
+  },
   chooseItem(e) {
     const { type, index } = e.currentTarget.dataset;
     const sourceMap = { body: 'bodies', expression: 'expressions', accessory: 'accessories' };

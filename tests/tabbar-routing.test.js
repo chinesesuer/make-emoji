@@ -50,3 +50,10 @@ test('选择身体素材时以原视觉尺寸的七分之八进入画布', () =>
   const source = fs.readFileSync(path.join(__dirname, '..', 'miniprogram', 'pages', 'index/index.js'), 'utf8');
   assert.match(source, /type === 'body'.*?bodyTransform: \{ scale: 0\.875, rotate: 0, flip: false \}/);
 });
+
+test('选身体按所选分类渲染素材，不混合其它分类', () => {
+  const pageScript = fs.readFileSync(path.join(__dirname, '..', 'miniprogram', 'pages', 'index/index.js'), 'utf8');
+  const pageMarkup = fs.readFileSync(path.join(__dirname, '..', 'miniprogram', 'pages', 'index/index.wxml'), 'utf8');
+  assert.match(pageScript, /refreshVisibleAssets[\s\S]*?item\.categoryName === category/);
+  assert.match(pageMarkup, /wx:for="\{\{visibleAssets\}\}"/);
+});

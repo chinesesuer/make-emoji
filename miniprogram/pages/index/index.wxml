@@ -35,10 +35,10 @@
         <view class="category {{categoryIndex === index ? 'category-active' : ''}}" wx:for="{{categories[currentStep]}}" wx:key="*this" data-index="{{index}}" bindtap="chooseCategory">{{item}}</view>
       </scroll-view>
       <view class="asset-grid">
-        <view wx:for="{{currentStep === 0 ? bodies : currentStep === 1 ? expressions : accessories}}" wx:key="index" class="asset {{(currentStep === 0 && selectedBody === index) || (currentStep === 1 && selectedExpression === index) || (currentStep === 2 && selectedAccessory === index) ? 'asset-selected' : ''}}" data-type="{{currentStep === 0 ? 'body' : currentStep === 1 ? 'expression' : 'accessory'}}" data-index="{{index}}" bindtap="chooseItem">
+        <view wx:for="{{visibleAssets}}" wx:key="sourceIndex" class="asset {{(currentStep === 0 && selectedBody === item.sourceIndex) || (currentStep === 1 && selectedExpression === item.sourceIndex) || (currentStep === 2 && selectedAccessory === item.sourceIndex) ? 'asset-selected' : ''}}" data-type="{{currentStep === 0 ? 'body' : currentStep === 1 ? 'expression' : 'accessory'}}" data-index="{{item.sourceIndex}}" bindtap="chooseItem">
           <image class="asset-image {{currentStep === 1 ? 'expression-preview' : ''}}" src="{{item.fileUrl}}" mode="aspectFit" lazy-load="{{true}}"/>
-          <view wx:if="{{(currentStep === 0 && selectedBody === index) || (currentStep === 1 && selectedExpression === index) || (currentStep === 2 && selectedAccessory === index)}}" class="asset-selected-mask"><image src="/images/adjust-slider.png" mode="aspectFit"/></view>
-          <view wx:if="{{(currentStep === 0 && selectedBody === index) || (currentStep === 1 && selectedExpression === index) || (currentStep === 2 && selectedAccessory === index)}}" class="asset-remove" catchtap="removeLayer" data-layer="{{currentStep === 0 ? 'body' : currentStep === 1 ? 'expression' : 'accessory'}}">×</view>
+          <view wx:if="{{(currentStep === 0 && selectedBody === item.sourceIndex) || (currentStep === 1 && selectedExpression === item.sourceIndex) || (currentStep === 2 && selectedAccessory === item.sourceIndex)}}" class="asset-selected-mask"><image src="/images/adjust-slider.png" mode="aspectFit"/></view>
+          <view wx:if="{{(currentStep === 0 && selectedBody === item.sourceIndex) || (currentStep === 1 && selectedExpression === item.sourceIndex) || (currentStep === 2 && selectedAccessory === item.sourceIndex)}}" class="asset-remove" catchtap="removeLayer" data-layer="{{currentStep === 0 ? 'body' : currentStep === 1 ? 'expression' : 'accessory'}}">×</view>
         </view>
       </view>
     </block>

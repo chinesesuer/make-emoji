@@ -69,10 +69,15 @@ function ensureLogin() {
   if (loginPromise) {
     return loginPromise;
   }
-  loginPromise = startLogin();
-  loginPromise.finally(() => {
-    loginPromise = null;
-  });
+  loginPromise = Promise.resolve()
+    .then(startLogin)
+    .catch(() => {
+      showLoginFailed();
+      return null;
+    })
+    .finally(() => {
+      loginPromise = null;
+    });
   return loginPromise;
 }
 

@@ -5,15 +5,15 @@ const AUTH_PATH = require.resolve('../miniprogram/utils/auth.js');
 
 function createWx(overrides = {}) {
   const storage = new Map();
-  const calls = { checkSession: 0, getUserProfile: 0, login: 0, callFunction: 0, showToast: [] };
+  const calls = { checkSession: 0, getUserProfile: 0, login: 0, callFunction: 0, showToast: [], profileOptions: null, cloudOptions: null };
   const wx = {
     getStorageSync(key) { return storage.get(key); },
     setStorageSync(key, value) { storage.set(key, value); },
     removeStorageSync(key) { storage.delete(key); },
     checkSession() { calls.checkSession += 1; return Promise.resolve(); },
-    getUserProfile() { calls.getUserProfile += 1; return Promise.resolve({ userInfo: { nickName: '小明' } }); },
+    getUserProfile(options) { calls.getUserProfile += 1; calls.profileOptions = options; return Promise.resolve({ userInfo: { nickName: '小明' } }); },
     login() { calls.login += 1; return Promise.resolve({ code: 'login-code' }); },
-    cloud: { callFunction() { calls.callFunction += 1; return Promise.resolve({ result: { success: true, user: { openid: 'openid-1', nickName: '小明' } } }); } },
+    cloud: { callFunction(options) { calls.callFunction += 1; calls.cloudOptions = options; return Promise.resolve({ result: { success: true, user: { openid: 'openid-1', nickName: '小明' } } }); } },
     showToast(options) { calls.showToast.push(options); },
     ...overrides
   };
@@ -72,6 +72,32 @@ test('首次登录请求资料、登录和云函数并缓存返回用户', async
   assert.equal(calls.getUserProfile, 1);
   assert.equal(calls.login, 1);
   assert.equal(calls.callFunction, 1);
+  assert.deepEqual(calls.profileOptions, { description: '用于登录并展示头像昵称' });
+  assert.deepEqual(calls.cloudOptions, {
+    name: 'quickstartFunctions',
+    data: { type: 'login', profile: { nickName: '小明' } }
+  });
+});
+
+test('读取用户缓存异常会返回 null、提示失败且不产生未处理拒绝', async () => {
+  const { wx, calls } = createWx({
+    getStorageSync() { throw new Error('storage unavailable'); }
+  });
+  const auth = loadAuth(wx);
+  const unhandled = [];
+  const onUnhandled = reason => { unhandled.push(reason); };
+  process.on('unhandledRejection', onUnhandled);
+
+  try {
+    const user = await auth.ensureLogin();
+    await new Promise(resolve => setImmediate(resolve));
+
+    assert.equal(user, null);
+    assert.deepEqual(calls.showToast, [{ title: '登录失败，请稍后重试', icon: 'none' }]);
+    assert.equal(unhandled.length, 0);
+  } finally {
+    process.removeListener('unhandledRejection', onUnhandled);
+  }
 });
 
 test('取消授权会返回 null、提示登录要求且不调用云函数', async () => {
@@ -99,7 +125,7 @@ test('云函数失败会返回 null 并提示稍后重试', async () => {
   assert.deepEqual(calls.showToast, [{ title: '登录失败，请稍后重试', icon: 'none' }]);
 });
 
-test('并发登录请求共享一次资料授权和云函数调用', async () => {
+test('并发登录请求共享同一 Promise，结算后会释放锁以启动新请求', async () => {
   let resolveProfile;
   const profilePromise = new Promise(resolve => { resolveProfile = resolve; });
   const { wx, calls } = createWx({
@@ -109,6 +135,7 @@ test('并发登录请求共享一次资料授权和云函数调用', async () =>
 
   const first = auth.ensureLogin();
   const second = auth.ensureLogin();
+  assert.equal(first, second);
   resolveProfile({ userInfo: { nickName: '小明' } });
   const [firstUser, secondUser] = await Promise.all([first, second]);
 
@@ -116,6 +143,12 @@ test('并发登录请求共享一次资料授权和云函数调用', async () =>
   assert.equal(secondUser, firstUser);
   assert.equal(calls.getUserProfile, 1);
   assert.equal(calls.callFunction, 1);
+
+  auth.logout();
+  const nextUser = await auth.ensureLogin();
+  assert.deepEqual(nextUser, { openid: 'openid-1', nickName: '小明' });
+  assert.equal(calls.getUserProfile, 2);
+  assert.equal(calls.callFunction, 2);
 });
 
 test('requireLogin 仅在成功后执行原操作并保留 this 和参数', async () => {

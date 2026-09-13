@@ -281,11 +281,13 @@ Page({
       return;
     }
     if (this.data.generating) return;
-    const user = await ensureLogin();
-    if (!user) return;
-    this.setData({ generating: true });
-    wx.showLoading({ title: '生成中' });
+    if (this.generatingTask) return;
+    this.generatingTask = true;
     try {
+      const user = await ensureLogin();
+      if (!user) return;
+      this.setData({ generating: true });
+      wx.showLoading({ title: '生成中' });
       const renderSizeMap = { bad: 240, compressed: 360, lossless: 480 };
       const size = renderSizeMap[this.data.qualityMode];
       const { node: canvas } = await new Promise((resolve, reject) => {
@@ -317,24 +319,34 @@ Page({
       console.error('generateEmoji failed', error);
       wx.showToast({ title: '生成失败，请重试', icon: 'none' });
     } finally {
-      wx.hideLoading();
-      this.setData({ generating: false });
+      if (this.data.generating) {
+        wx.hideLoading();
+        this.setData({ generating: false });
+      }
+      this.generatingTask = false;
     }
   },
   closeResult() { this.setData({ resultVisible: false }); },
   async saveGeneratedImage() {
     if (!this.data.generatedImage) return;
-    const user = await ensureLogin();
-    if (!user) return;
-    wx.saveImageToPhotosAlbum({
-      filePath: this.data.generatedImage,
-      success: () => wx.showToast({ title: '已保存到相册', icon: 'success' }),
-      fail: error => {
-        if (error.errMsg && error.errMsg.includes('auth deny')) {
-          wx.showModal({ title: '需要相册权限', content: '请在设置中允许保存图片到相册', success: result => result.confirm && wx.openSetting() });
-        } else wx.showToast({ title: '保存失败', icon: 'none' });
-      }
-    });
+    if (this.savingGeneratedImage) return;
+    this.savingGeneratedImage = true;
+    try {
+      const user = await ensureLogin();
+      if (!user) return;
+      await new Promise(resolve => wx.saveImageToPhotosAlbum({
+        filePath: this.data.generatedImage,
+        success: () => { wx.showToast({ title: '已保存到相册', icon: 'success' }); resolve(); },
+        fail: error => {
+          if (error.errMsg && error.errMsg.includes('auth deny')) {
+            wx.showModal({ title: '需要相册权限', content: '请在设置中允许保存图片到相册', success: result => result.confirm && wx.openSetting() });
+          } else wx.showToast({ title: '保存失败', icon: 'none' });
+          resolve();
+        }
+      }));
+    } finally {
+      this.savingGeneratedImage = false;
+    }
   },
   chooseTextStyle(e) {this.setData({textStyle:e.currentTarget.dataset.index});}, chooseColor(e) {this.setData({textColor:e.currentTarget.dataset.color});}, choosePosition(e) {this.setData({textPosition:e.currentTarget.dataset.position});},
   saveImage() {wx.showToast({title:'表情已保存',icon:'success'});}, saveToWarehouse() {wx.showToast({title:'已存入表情仓库',icon:'success'});}, share() {wx.showToast({title:'点击右上角分享给好友',icon:'none'});}

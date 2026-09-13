@@ -55,6 +55,12 @@ function installWx() {
   return calls;
 }
 
+function deferred() {
+  let resolve;
+  const promise = new Promise(next => { resolve = next; });
+  return { promise, resolve };
+}
+
 test('取消登录会阻止首页生成和保存的副作用', async () => {
   const calls = installWx();
   const index = loadPage('pages/index/index.js', async () => null);
@@ -119,13 +125,108 @@ test('成功登录会在同次视频入口中继续选择、转换和保存', as
   assert.equal(calls.some(([name]) => name === 'saveImage'), true);
 });
 
-test('更换视频复用受保护的 chooseVideo 入口', async () => {
-  installWx();
+test('登录等待期间同一首页生成只会继续一次', async () => {
+  const calls = installWx();
+  const login = deferred();
+  const index = loadPage('pages/index/index.js', () => login.promise);
+  const ctx = { clearRect() {}, fillRect() {} };
+  const context = pageContext(index, { body: 'body' }, {
+    createSelectorQuery() {
+      return { select: () => ({ fields: () => ({ exec: callback => callback([{ node: { getContext: () => ctx } }]) }) }) };
+    }
+  });
+
+  const first = context.generateEmoji();
+  const second = context.generateEmoji();
+  const third = context.generateEmoji();
+  login.resolve({ openid: 'user-1' });
+  await Promise.all([first, second, third]);
+
+  assert.equal(calls.filter(([name]) => name === 'canvasExport').length, 1);
+  assert.equal(context.updates.filter(update => update.generating === true).length, 1);
+});
+
+test('登录等待期间同一视频选择和转换各只会继续一次', async () => {
+  const chooseCalls = installWx();
+  const chooseLogin = deferred();
+  const video = loadPage('pages/gifVideo/gifVideo.js', () => chooseLogin.promise);
+  const choose = pageContext(video, {});
+  const firstChoose = choose.chooseVideo();
+  const secondChoose = choose.chooseVideo();
+  chooseLogin.resolve({ openid: 'user-1' });
+  await Promise.all([firstChoose, secondChoose]);
+  assert.equal(chooseCalls.filter(([name]) => name === 'chooseMedia').length, 1);
+
+  const convertCalls = installWx();
+  const convertLogin = deferred();
+  const convertDefinition = loadPage('pages/gifVideo/gifVideo.js', () => convertLogin.promise);
+  const convert = pageContext(convertDefinition, { video: { auditFileID: 'audit', width: 10, height: 10 } });
+  const firstConvert = convert.startConvert();
+  const secondConvert = convert.startConvert();
+  convertLogin.resolve({ openid: 'user-1' });
+  await Promise.all([firstConvert, secondConvert]);
+  assert.equal(convertCalls.filter(([name]) => name === 'cloudCall').length, 1);
+  assert.equal(convert.updates.filter(update => update.converting === true).length, 1);
+});
+
+test('更换视频在登录取消时不触发任何选择、状态或云删除副作用', async () => {
+  const calls = installWx();
   const video = loadPage('pages/gifVideo/gifVideo.js', async () => null);
-  let chooseCalls = 0;
-  const context = pageContext(video, {}, { chooseVideo: async () => { chooseCalls += 1; } });
+  const old = { auditFileID: 'old-audit' };
+  const context = pageContext(video, { video: old, crop: { left: 1 } });
 
   await context.changeVideo();
 
-  assert.equal(chooseCalls, 1);
+  assert.equal(calls.some(([name]) => name === 'chooseMedia'), false);
+  assert.equal(calls.some(([name]) => name === 'deleteFile'), false);
+  assert.deepEqual(context.updates, []);
+  assert.equal(context.data.video, old);
+});
+
+test('更换视频在选择取消或审核失败时保留旧视频和旧云文件', async () => {
+  const selectionCalls = installWx();
+  const definition = loadPage('pages/gifVideo/gifVideo.js', async () => ({ openid: 'user-1' }));
+  const old = { auditFileID: 'old-audit' };
+  const cancelled = pageContext(definition, { video: old });
+  global.wx.chooseMedia = async () => { throw new Error('chooseMedia:fail cancel'); };
+  global.wx.cloud.deleteFile = ({ fileList }) => { selectionCalls.push(['deleteFile', fileList]); return Promise.resolve(); };
+
+  await cancelled.changeVideo();
+
+  assert.equal(cancelled.data.video, old);
+  assert.equal(selectionCalls.some(([name]) => name === 'deleteFile'), false);
+
+  const auditCalls = installWx();
+  const auditDefinition = loadPage('pages/gifVideo/gifVideo.js', async () => ({ openid: 'user-1' }));
+  const auditOld = { auditFileID: 'old-audit' };
+  const auditFailed = pageContext(auditDefinition, { video: auditOld }, { prepareVideo: async () => false });
+  global.wx.chooseMedia = async () => ({ tempFiles: [{ tempFilePath: '/tmp/new.mp4' }] });
+  global.wx.cloud.deleteFile = ({ fileList }) => { auditCalls.push(['deleteFile', fileList]); return Promise.resolve(); };
+
+  await auditFailed.changeVideo();
+
+  assert.equal(auditFailed.data.video, auditOld);
+  assert.equal(auditCalls.some(([name]) => name === 'deleteFile'), false);
+});
+
+test('更换视频仅在新视频审核成功替换后删除旧云文件', async () => {
+  const calls = installWx();
+  const video = loadPage('pages/gifVideo/gifVideo.js', async () => ({ openid: 'user-1' }));
+  const old = { auditFileID: 'old-audit' };
+  const replacement = { auditFileID: 'new-audit' };
+  const context = pageContext(video, { video: old }, {
+    async prepareVideo() {
+      this.setData({ video: replacement, crop: null });
+      return true;
+    }
+  });
+  global.wx.chooseMedia = async () => ({ tempFiles: [{ tempFilePath: '/tmp/new.mp4' }] });
+  global.wx.cloud.deleteFile = ({ fileList }) => { calls.push(['deleteFile', fileList]); return Promise.resolve(); };
+
+  await context.changeVideo();
+
+  const deletions = calls.filter(([name]) => name === 'deleteFile');
+  assert.equal(deletions.length, 1);
+  assert.equal(deletions[0][1][0], 'old-audit');
+  assert.equal(context.data.video, replacement);
 });

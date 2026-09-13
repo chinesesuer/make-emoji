@@ -33,13 +33,15 @@ Page({
   },
   async chooseVideo() {
     if (this.data.auditing) return;
+    if (this.choosingVideo) return;
+    this.choosingVideo = true;
+    try {
     const user = await ensureLogin();
     if (!user) return;
-    try {
       const picked = await wx.chooseMedia({ count: 1, mediaType: ['video'], sourceType: ['album', 'camera'], maxDuration: 60 });
       if (!picked.tempFiles || !picked.tempFiles.length) return;
       const file = picked.tempFiles[0];
-      await this.prepareVideo({
+      return await this.prepareVideo({
         path: file.tempFilePath,
         thumb: file.thumbTempFilePath || '',
         duration: Number(file.duration) || 0,
@@ -51,18 +53,21 @@ Page({
       if (!/cancel/i.test(String(error.errMsg || error.message))) {
         wx.showToast({ title: '选择视频失败', icon: 'none' });
       }
+      return false;
+    } finally {
+      this.choosingVideo = false;
     }
   },
   async prepareVideo(video) {
     // 无论原视频是否超过 10 秒，都必须先由用户在微信视频编辑器中确认截取。
     // 只有编辑器导出成功后才会进入上传与内容安全审核流程。
     const result = await this.openEditor(video, true);
-    if (!result) return;
+    if (!result) return false;
     if (result.duration > 10.2) {
       wx.showModal({ title: '视频过长', content: '请将视频截取到 10 秒以内。', showCancel: false });
-      return;
+      return false;
     }
-    await this.uploadAndAudit(result);
+    return this.uploadAndAudit(result);
   },
   openEditor(video, required) {
     return new Promise(resolve => {
@@ -118,6 +123,7 @@ Page({
       const duration = Math.min(10, Number(video.duration) || 0);
       this.setData({ video: { ...video, duration, durationText: this.formatDuration(duration), auditFileID: fileID }, crop: null });
       fileID = '';
+      return true;
     } catch (error) {
       const raw = String(error.message || error.errMsg || '请稍后重试');
       const invalidOpenid = String(error.code) === '40003' || /invalid openid/i.test(raw);
@@ -126,6 +132,7 @@ Page({
         content: invalidOpenid ? '云函数未正确取得当前微信用户身份，请重新部署 gifImages 云函数后再试。视频本身没有被判定为违规。' : raw,
         showCancel: false
       });
+      return false;
     } finally {
       if (fileID) wx.cloud.deleteFile({ fileList: [fileID] }).catch(() => {});
       wx.hideLoading();
@@ -133,7 +140,11 @@ Page({
     }
   },
   async changeVideo() {
-    return this.chooseVideo();
+    const old = this.data.video;
+    const replaced = await this.chooseVideo();
+    if (replaced && old && old.auditFileID && this.data.video !== old) {
+      wx.cloud.deleteFile({ fileList: [old.auditFileID] }).catch(() => {});
+    }
   },
   openCrop() {
     const video = this.data.video;
@@ -151,11 +162,13 @@ Page({
   loopPlus() { if (this.data.loop) this.setData({ loop: Math.min(99, this.data.loop + 1) }); },
   async startConvert() {
     if (!this.data.video || this.data.converting) return;
-    const user = await ensureLogin();
-    if (!user) return;
-    this.setData({ converting: true });
-    wx.showLoading({ title: '正在转换GIF', mask: true });
+    if (this.convertingTask) return;
+    this.convertingTask = true;
     try {
+      const user = await ensureLogin();
+      if (!user) return;
+      this.setData({ converting: true });
+      wx.showLoading({ title: '正在转换GIF', mask: true });
       const resolutionMap = [240, 320, 480, 0];
       const response = await wx.cloud.callFunction({
         name: 'gifImages',
@@ -184,22 +197,32 @@ Page({
         showCancel: false
       });
     } finally {
-      wx.hideLoading(); this.setData({ converting: false });
+      if (this.data.converting) {
+        wx.hideLoading(); this.setData({ converting: false });
+      }
+      this.convertingTask = false;
     }
   },
   closeResult() { this.setData({ resultVisible: false }); },
   async saveGif() {
     if (!this.data.generatedGif) return;
-    const user = await ensureLogin();
-    if (!user) return;
-    wx.saveImageToPhotosAlbum({
-      filePath: this.data.generatedGif,
-      success: () => wx.showToast({ title: '已保存到相册', icon: 'success' }),
-      fail: error => {
-        if (/auth deny/i.test(String(error.errMsg))) wx.showModal({ title: '需要相册权限', content: '请在设置中允许保存图片到相册', success: r => r.confirm && wx.openSetting() });
-        else wx.showToast({ title: '保存失败', icon: 'none' });
-      }
-    });
+    if (this.savingGif) return;
+    this.savingGif = true;
+    try {
+      const user = await ensureLogin();
+      if (!user) return;
+      await new Promise(resolve => wx.saveImageToPhotosAlbum({
+        filePath: this.data.generatedGif,
+        success: () => { wx.showToast({ title: '已保存到相册', icon: 'success' }); resolve(); },
+        fail: error => {
+          if (/auth deny/i.test(String(error.errMsg))) wx.showModal({ title: '需要相册权限', content: '请在设置中允许保存图片到相册', success: r => r.confirm && wx.openSetting() });
+          else wx.showToast({ title: '保存失败', icon: 'none' });
+          resolve();
+        }
+      }));
+    } finally {
+      this.savingGif = false;
+    }
   },
   onUnload() {
     const video = this.data.video;

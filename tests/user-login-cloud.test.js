@@ -1,7 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const path = require('node:path');
+const Module = require('node:module');
 
 const { loginUser, sanitizeProfile } = require('../cloudfunctions/quickstartFunctions/user-login.js');
 
@@ -33,6 +32,23 @@ function createDatabase() {
   };
 
   return { collection(name) { assert.equal(name, 'users'); return collection; }, records };
+}
+
+function loadLoginHandler(cloud) {
+  const indexPath = require.resolve('../cloudfunctions/quickstartFunctions/index.js');
+  const originalLoad = Module._load;
+  delete require.cache[indexPath];
+  Module._load = function loadWxServerSdk(request, parent, isMain) {
+    if (request === 'wx-server-sdk') return cloud;
+    return originalLoad.call(this, request, parent, isMain);
+  };
+
+  try {
+    return require(indexPath).main;
+  } finally {
+    Module._load = originalLoad;
+    delete require.cache[indexPath];
+  }
 }
 
 test('首次登录创建一条用户记录', async () => {
@@ -80,9 +96,23 @@ test('伪造的 profile.openid 不会影响返回值或存储身份', async () =
   assert.equal(db.records[0].openid, undefined);
 });
 
-test('登录分支从 cloud.getWXContext().OPENID 取得可信身份', () => {
-  const indexPath = path.join(__dirname, '../cloudfunctions/quickstartFunctions/index.js');
-  const source = fs.readFileSync(indexPath, 'utf8');
+test('登录入口只信任 cloud.getWXContext 的 OPENID', async () => {
+  const db = createDatabase();
+  const cloud = {
+    DYNAMIC_CURRENT_ENV: 'current-env',
+    init() {},
+    database() { return db; },
+    getWXContext() { return { OPENID: 'cloud-trusted-openid' }; },
+  };
+  const main = loadLoginHandler(cloud);
 
-  assert.match(source, /case\s+["']login["'][\s\S]*?cloud\.getWXContext\(\)\.OPENID[\s\S]*?loginUser\(/);
+  const result = await main({
+    type: 'login',
+    openid: 'forged-event-openid',
+    profile: { openid: 'forged-profile-openid', nickName: '小明' },
+  });
+
+  assert.equal(result.user.openid, 'cloud-trusted-openid');
+  assert.equal(db.records[0]._openid, 'cloud-trusted-openid');
+  assert.equal(db.records[0].openid, undefined);
 });

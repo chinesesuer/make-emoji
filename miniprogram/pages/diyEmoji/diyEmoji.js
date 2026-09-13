@@ -27,6 +27,7 @@ const DECO_GLYPHS = ['✨','👉','☝️','👋','👌','👃','🦴','•','�
 const CATEGORIES = ['脸型','眼睛','异瞳','嘴巴','装饰'];
 const HINTS = ['好的emoji表情从选择一个脸型开始','眼睛是心灵的窗户','异色双瞳，一眼万年的灵魂','笑口常开','装饰当然是越多越好'];
 const DEFAULT_STATE = { face: 0, eyes: 1, pupil: 0, mouth: 0, decorations: [] };
+const { ensureLogin } = require('../../utils/auth');
 
 Page({
   data: {
@@ -144,23 +145,30 @@ Page({
     if (this.history.length > 40) this.history.shift();
   },
 
-  chooseMaterial(e) {
-    const index = Number(e.currentTarget.dataset.index);
-    this.snapshot();
-    if (this.data.category === 0) this.state.face = index;
-    else if (this.data.category === 1) this.state.eyes = this.state.eyes === index ? null : index;
-    else if (this.data.category === 2) this.state.pupil = this.state.pupil === index ? null : index;
-    else if (this.data.category === 3) this.state.mouth = this.state.mouth === index ? null : index;
-    else {
-      const at = this.state.decorations.indexOf(index);
-      if (at >= 0) this.state.decorations.splice(at, 1);
-      else if (this.state.decorations.length < 8) this.state.decorations.push(index);
+  async chooseMaterial(e) {
+    if (this._choosingMaterial) return;
+    this._choosingMaterial = true;
+    let user;
+    try { user = await ensureLogin(); } catch (_) { this._choosingMaterial = false; return; }
+    if (!user) { this._choosingMaterial = false; return; }
+    try {
+      const index = Number(e.currentTarget.dataset.index);
+      this.snapshot();
+      if (this.data.category === 0) this.state.face = index;
+      else if (this.data.category === 1) this.state.eyes = this.state.eyes === index ? null : index;
+      else if (this.data.category === 2) this.state.pupil = this.state.pupil === index ? null : index;
+      else if (this.data.category === 3) this.state.mouth = this.state.mouth === index ? null : index;
       else {
-        this.history.pop();
-        wx.showToast({ title: '最多添加 8 个装饰', icon: 'none' });
+        const at = this.state.decorations.indexOf(index);
+        if (at >= 0) this.state.decorations.splice(at, 1);
+        else if (this.state.decorations.length < 8) this.state.decorations.push(index);
+        else {
+          this.history.pop();
+          wx.showToast({ title: '最多添加 8 个装饰', icon: 'none' });
+        }
       }
-    }
-    this.refresh();
+      this.refresh();
+    } finally { this._choosingMaterial = false; }
   },
 
   reset() {
@@ -194,6 +202,11 @@ Page({
       if (!this.data.saving) wx.showToast({ title: '脸型素材仍在加载', icon: 'none' });
       return;
     }
+    if (this._savingDiy) return;
+    this._savingDiy = true;
+    let user;
+    try { user = await ensureLogin(); } catch (_) { this._savingDiy = false; return; }
+    if (!user) { this._savingDiy = false; return; }
     this.setData({ saving: true });
     wx.showLoading({ title: '正在保存' });
     try {
@@ -237,6 +250,7 @@ Page({
       else { console.error('save DIY emoji failed', error); wx.showToast({ title: '保存失败，请重试', icon: 'none' }); }
     } finally {
       wx.hideLoading(); this.setData({ saving: false });
+      this._savingDiy = false;
     }
   },
 

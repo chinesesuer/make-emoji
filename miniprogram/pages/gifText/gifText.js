@@ -1,3 +1,5 @@
+const { ensureLogin } = require('../../utils/auth');
+
 Page({
   data: {
     gifPath: '', auditFileID: '', sourceWidth: 1, sourceHeight: 1, stageHeight: 372, stageWidthPx: 1, stageHeightPx: 1,
@@ -24,7 +26,11 @@ Page({
     return new Promise((resolve, reject) => wx.canvasToTempFilePath({ canvas, fileType: 'png', destWidth: width, destHeight: height, success: r => resolve(r.tempFilePath), fail: reject }));
   },
   async chooseGif() {
+    if (this._choosingGif) return;
+    this._choosingGif = true;
     try {
+      const user = await ensureLogin();
+      if (!user) return;
       const source = await new Promise((resolve, reject) => wx.showActionSheet({ itemList: ['从相册选择', '从聊天记录选择'], success: r => resolve(r.tapIndex), fail: reject }));
       let file;
       if (source === 0) {
@@ -48,7 +54,7 @@ Page({
       const up = await wx.cloud.uploadFile({ cloudPath: `gif-text/${Date.now()}-${Math.random().toString(36).slice(2)}.gif`, filePath });
       this.cleanup(); const ratio = info.width / info.height; const stageHeight = Math.max(260, Math.min(620, Math.round(662 / ratio)));
       this.setData({ gifPath: filePath, auditFileID: up.fileID, sourceWidth: info.width, sourceHeight: info.height, stageHeight, textX: 80, textY: Math.round(stageHeight / 3), textScale: 1 }, () => setTimeout(() => this.measureStage(), 50));
-    } catch (e) { if (!String(e.errMsg || e.message).includes('cancel')) wx.showModal({ title: '审核服务暂时不可用', content: '本次未判定为违规，请稍后重试。', showCancel: false }); } finally { wx.hideLoading(); }
+    } catch (e) { if (!String(e.errMsg || e.message).includes('cancel')) wx.showModal({ title: '审核服务暂时不可用', content: '本次未判定为违规，请稍后重试。', showCancel: false }); } finally { wx.hideLoading(); this._choosingGif = false; }
   },
   measureStage() { this.createSelectorQuery().select('#stage').boundingClientRect(r => r && this.setData({ stageWidthPx: r.width, stageHeightPx: r.height })).exec(); },
   cleanup() { if (this.data.auditFileID) wx.cloud.deleteFile({ fileList: [this.data.auditFileID] }).catch(() => {}); },
@@ -70,11 +76,24 @@ Page({
     return new Promise((resolve, reject) => wx.canvasToTempFilePath({ canvas, fileType: 'png', destWidth: w, destHeight: h, success: r => resolve(r.tempFilePath), fail: reject }));
   },
   async generate() {
-    if (!this.data.text || this.data.generating) return; this.setData({ generating: true }); let overlayID = '';
+    if (!this.data.text || this.data.generating || this._generatingGifText) return;
+    this._generatingGifText = true;
+    let user;
+    try { user = await ensureLogin(); } catch (_) { this._generatingGifText = false; return; }
+    if (!user) { this._generatingGifText = false; return; }
+    this.setData({ generating: true }); let overlayID = '';
     try { wx.showLoading({ title: '正在处理', mask: true }); const overlay = await this.createOverlay(); const up = await wx.cloud.uploadFile({ cloudPath: `gif-text-overlays/${Date.now()}.png`, filePath: overlay }); overlayID = up.fileID;
       const r = await wx.cloud.callFunction({ name: 'gifImages', data: { action: 'generateGifText', fileID: this.data.auditFileID, overlayFileID: overlayID } }); if (!r.result || !r.result.success) throw new Error((r.result && r.result.message) || '处理失败');
       const down = await wx.cloud.downloadFile({ fileID: r.result.fileID }); this.setData({ generatedGif: down.tempFilePath, resultVisible: true });
-    } catch (e) { wx.showModal({ title: '处理失败', content: String(e.errMsg || e.message).slice(0, 500), showCancel: false }); } finally { if (overlayID) wx.cloud.deleteFile({ fileList: [overlayID] }).catch(() => {}); wx.hideLoading(); this.setData({ generating: false }); }
+    } catch (e) { wx.showModal({ title: '处理失败', content: String(e.errMsg || e.message).slice(0, 500), showCancel: false }); } finally { if (overlayID) wx.cloud.deleteFile({ fileList: [overlayID] }).catch(() => {}); wx.hideLoading(); this.setData({ generating: false }); this._generatingGifText = false; }
   },
-  closeResult() { this.setData({ resultVisible: false }); }, saveResult() { wx.saveImageToPhotosAlbum({ filePath: this.data.generatedGif, success: () => wx.showToast({ title: '已保存', icon: 'success' }), fail: () => wx.showToast({ title: '保存失败', icon: 'none' }) }); }
+  closeResult() { this.setData({ resultVisible: false }); }, async saveResult() {
+    if (!this.data.generatedGif || this._savingGifText) return;
+    this._savingGifText = true;
+    try {
+      const user = await ensureLogin();
+      if (!user) return;
+      await new Promise(resolve => wx.saveImageToPhotosAlbum({ filePath: this.data.generatedGif, success: () => { wx.showToast({ title: '已保存', icon: 'success' }); resolve(); }, fail: () => { wx.showToast({ title: '保存失败', icon: 'none' }); resolve(); } }));
+    } finally { this._savingGifText = false; }
+  }
 });

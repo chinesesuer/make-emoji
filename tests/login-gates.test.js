@@ -61,6 +61,127 @@ function deferred() {
   return { promise, resolve };
 }
 
+function methodSource(relativePath, method) {
+  const source = fs.readFileSync(path.join(root, relativePath), 'utf8');
+  const start = source.indexOf(`async ${method}(`) >= 0
+    ? source.indexOf(`async ${method}(`)
+    : source.indexOf(`${method}(`);
+  assert.notEqual(start, -1, `${relativePath} should define ${method}`);
+  const bodyStart = source.indexOf('{', start);
+  let depth = 0;
+  for (let index = bodyStart; index < source.length; index += 1) {
+    if (source[index] === '{') depth += 1;
+    if (source[index] === '}') {
+      depth -= 1;
+      if (!depth) return source.slice(start, index + 1);
+    }
+  }
+  throw new Error(`${relativePath} has an unterminated ${method}`);
+}
+
+function assertLoginPrecedes(relativePath, method, sideEffect) {
+  const source = fs.readFileSync(path.join(root, relativePath), 'utf8');
+  assert.match(source, /require\('\.\.\/\.\.\/utils\/auth'\)/, `${relativePath} imports auth`);
+  const body = methodSource(relativePath, method);
+  const login = body.indexOf('await ensureLogin()');
+  const effect = body.indexOf(sideEffect);
+  assert.notEqual(login, -1, `${method} awaits ensureLogin`);
+  assert.notEqual(effect, -1, `${method} performs ${sideEffect}`);
+  assert.ok(login < effect, `${method} authenticates before ${sideEffect}`);
+  assert.ok(body.indexOf('if (!user)', login) > login, `${method} exits after a cancelled login`);
+}
+
+test('其余创作工具在实际副作用前完成登录检查', () => {
+  assertLoginPrecedes('pages/gifImages/gifImages.js', 'chooseImages', 'wx.chooseMedia');
+  assertLoginPrecedes('pages/gifImages/gifImages.js', 'generateGif', 'generating: true');
+  assertLoginPrecedes('pages/gifImages/gifImages.js', 'saveGeneratedGif', 'wx.saveImageToPhotosAlbum');
+  assertLoginPrecedes('pages/gifText/gifText.js', 'chooseGif', 'wx.showActionSheet');
+  assertLoginPrecedes('pages/gifText/gifText.js', 'generate', 'generating: true');
+  assertLoginPrecedes('pages/gifText/gifText.js', 'saveResult', 'wx.saveImageToPhotosAlbum');
+  assertLoginPrecedes('pages/emojiMixer/emojiMixer.js', 'saveEmoji', 'saving: true');
+  assertLoginPrecedes('pages/diyEmoji/diyEmoji.js', 'chooseMaterial', 'this.snapshot');
+  assertLoginPrecedes('pages/diyEmoji/diyEmoji.js', 'save', 'saving: true');
+  assertLoginPrecedes('pages/gridSlice/gridSlice.js', 'chooseImage', 'wx.chooseMedia');
+  assertLoginPrecedes('pages/gridSlice/gridSlice.js', 'generateTiles', 'generating: true');
+  assertLoginPrecedes('pages/gridSlice/gridSlice.js', 'saveAll', 'saving: true');
+});
+
+test('取消登录不会启动其余创作工具的选择、生成或保存', async () => {
+  const calls = installWx();
+  const gifImages = loadPage('pages/gifImages/gifImages.js', async () => null);
+  const gifText = loadPage('pages/gifText/gifText.js', async () => null);
+  const mixer = loadPage('pages/emojiMixer/emojiMixer.js', async () => null);
+  const diy = loadPage('pages/diyEmoji/diyEmoji.js', async () => null);
+  const grid = loadPage('pages/gridSlice/gridSlice.js', async () => null);
+
+  const imageChoose = pageContext(gifImages, { images: [] });
+  const imageGenerate = pageContext(gifImages, { images: [{ path: 'a' }, { path: 'b' }], generating: false });
+  const imageSave = pageContext(gifImages, { generatedGif: '/tmp/result.gif' });
+  const textChoose = pageContext(gifText, {});
+  const textGenerate = pageContext(gifText, { text: 'hi', generating: false });
+  const textSave = pageContext(gifText, { generatedGif: '/tmp/result.gif' });
+  const mixSave = pageContext(mixer, { resultType: 'fallback', saving: false });
+  const diyChoose = pageContext(diy, { category: 0 }, { history: [] });
+  const diySave = pageContext(diy, { saving: false, facesLoading: false }, { state: { face: 0 } });
+  const gridChoose = pageContext(grid, {});
+  const gridGenerate = pageContext(grid, { imagePath: '/tmp/image.png', generating: false });
+  const gridSave = pageContext(grid, { tiles: [{ path: '/tmp/tile.png' }], saving: false });
+
+  await imageChoose.chooseImages(); await imageGenerate.generateGif(); await imageSave.saveGeneratedGif();
+  await textChoose.chooseGif(); await textGenerate.generate(); await textSave.saveResult();
+  await mixSave.saveEmoji(); await diyChoose.chooseMaterial({ currentTarget: { dataset: { index: 0 } } }); await diySave.save();
+  await gridChoose.chooseImage(); await gridGenerate.generateTiles(); await gridSave.saveAll();
+
+  assert.equal(calls.some(([name]) => ['chooseMedia', 'cloudCall', 'canvasExport', 'saveImage'].includes(name)), false);
+  assert.equal(imageGenerate.updates.some(update => update.generating === true), false);
+  assert.equal(textGenerate.updates.some(update => update.generating === true), false);
+  assert.equal(mixSave.updates.some(update => update.saving === true), false);
+  assert.equal(gridGenerate.updates.some(update => update.generating === true), false);
+  assert.equal(gridSave.updates.some(update => update.saving === true), false);
+  assert.deepEqual(diyChoose.updates, []);
+});
+
+test('成功登录会在同次创作点击中继续选择、生成和保存', async () => {
+  const calls = installWx();
+  global.wx.cloud.uploadFile = async () => ({ fileID: 'overlay-id' });
+  const gifImages = loadPage('pages/gifImages/gifImages.js', async () => ({ openid: 'user-1' }));
+  const gifText = loadPage('pages/gifText/gifText.js', async () => ({ openid: 'user-1' }));
+  const mixer = loadPage('pages/emojiMixer/emojiMixer.js', async () => ({ openid: 'user-1' }));
+
+  const choose = pageContext(gifImages, { images: [] });
+  const generate = pageContext(gifText, { text: 'hi', generating: false }, { createOverlay: async () => '/tmp/overlay.png' });
+  const save = pageContext(mixer, { resultType: 'fallback', saving: false }, { renderFallbackImage: async () => '/tmp/mix.png' });
+
+  await choose.chooseImages();
+  await generate.generate();
+  await save.saveEmoji();
+
+  assert.equal(calls.some(([name]) => name === 'chooseMedia'), true);
+  assert.equal(generate.updates.some(update => update.generating === true), true);
+  assert.equal(calls.some(([name]) => name === 'cloudCall'), true);
+  assert.equal(calls.some(([name]) => name === 'saveImage'), true);
+});
+
+test('登录等待期间重复点击不会重复打开选择器、生成或保存', async () => {
+  const calls = installWx();
+  const login = deferred();
+  const gifImages = loadPage('pages/gifImages/gifImages.js', () => login.promise);
+  const gifText = loadPage('pages/gifText/gifText.js', () => login.promise);
+  const mixer = loadPage('pages/emojiMixer/emojiMixer.js', () => login.promise);
+  const choose = pageContext(gifImages, { images: [] });
+  const generate = pageContext(gifText, { text: 'hi', generating: false }, { createOverlay: async () => '/tmp/overlay.png' });
+  const save = pageContext(mixer, { resultType: 'fallback', saving: false }, { renderFallbackImage: async () => '/tmp/mix.png' });
+  global.wx.cloud.uploadFile = async () => ({ fileID: 'overlay-id' });
+
+  const pending = [choose.chooseImages(), choose.chooseImages(), generate.generate(), generate.generate(), save.saveEmoji(), save.saveEmoji()];
+  login.resolve({ openid: 'user-1' });
+  await Promise.all(pending);
+
+  assert.equal(calls.filter(([name]) => name === 'chooseMedia').length, 1);
+  assert.equal(generate.updates.filter(update => update.generating === true).length, 1);
+  assert.equal(calls.filter(([name]) => name === 'saveImage').length, 1);
+});
+
 test('取消登录会阻止首页生成和保存的副作用', async () => {
   const calls = installWx();
   const index = loadPage('pages/index/index.js', async () => null);

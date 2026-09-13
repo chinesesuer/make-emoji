@@ -32,6 +32,7 @@ const GRIDS = [
 
 const GAP = 6;
 const EXPORT_TILE = 600;
+const { ensureLogin } = require('../../utils/auth');
 
 Page({
   data: {
@@ -83,27 +84,33 @@ Page({
   goMoreTools() { wx.redirectTo({ url: '/pages/moreTools/moreTools' }); },
   goProfile() { wx.redirectTo({ url: '/pages/profile/profile' }); },
 
-  chooseImage() {
-    wx.chooseMedia({
+  async chooseImage() {
+    if (this._choosingImage) return;
+    this._choosingImage = true;
+    let user;
+    try { user = await ensureLogin(); } catch (_) { this._choosingImage = false; return; }
+    if (!user) { this._choosingImage = false; return; }
+    try { wx.chooseMedia({
       count: 1,
       mediaType: ['image'],
       sourceType: ['album', 'camera'],
       sizeType: ['original'],
       success: result => {
         const file = result.tempFiles && result.tempFiles[0];
-        if (!file) return;
+        if (!file) { this._choosingImage = false; return; }
         wx.getImageInfo({
           src: file.tempFilePath,
           success: info => {
             this.sourceInfo = { width: info.width, height: info.height };
             this.position = { x: 0.5, y: 0.5 };
             this.previewImage = null;
-            this.setData({ imagePath: file.tempFilePath, tiles: [], resultVisible: false }, () => this.renderPreview());
+            this.setData({ imagePath: file.tempFilePath, tiles: [], resultVisible: false }, () => { this.renderPreview(); this._choosingImage = false; });
           },
-          fail: () => wx.showToast({ title: '图片读取失败', icon: 'none' })
+          fail: () => { wx.showToast({ title: '图片读取失败', icon: 'none' }); this._choosingImage = false; }
         });
-      }
-    });
+      },
+      fail: () => { this._choosingImage = false; }
+    }); } catch (_) { this._choosingImage = false; }
   },
 
   selectShape(e) {
@@ -309,7 +316,11 @@ Page({
       wx.showToast({ title: '请先选择图片', icon: 'none' });
       return;
     }
-    if (this.data.generating) return;
+    if (this.data.generating || this._generatingTiles) return;
+    this._generatingTiles = true;
+    let user;
+    try { user = await ensureLogin(); } catch (_) { this._generatingTiles = false; return; }
+    if (!user) { this._generatingTiles = false; return; }
     this.setData({ generating: true });
     wx.showLoading({ title: '正在切图' });
     try {
@@ -333,12 +344,17 @@ Page({
       console.error('generate grid slices failed', error);
       wx.showToast({ title: '切图失败，请重试', icon: 'none' });
     } finally {
-      wx.hideLoading(); this.setData({ generating: false });
+      wx.hideLoading(); this.setData({ generating: false }); this._generatingTiles = false;
     }
   },
 
   async saveAll() {
     if (!this.data.tiles.length || this.data.saving) return;
+    if (this._savingTiles) return;
+    this._savingTiles = true;
+    let user;
+    try { user = await ensureLogin(); } catch (_) { this._savingTiles = false; return; }
+    if (!user) { this._savingTiles = false; return; }
     this.setData({ saving: true }); wx.showLoading({ title: `保存 0/${this.data.tiles.length}` });
     try {
       for (let i = 0; i < this.data.tiles.length; i += 1) {
@@ -353,6 +369,7 @@ Page({
       else wx.showToast({ title: '保存失败，请重试', icon: 'none' });
     } finally {
       this.setData({ saving: false });
+      this._savingTiles = false;
     }
   }
 });

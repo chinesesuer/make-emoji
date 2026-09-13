@@ -1,3 +1,5 @@
+const { ensureLogin } = require('../../utils/auth');
+
 Page({
   data: {
     images: [], previewIndex: 0, fps: 5, loop: 0, resolution: 320, resolutionLabel: '320p',
@@ -44,7 +46,11 @@ Page({
   async chooseImages() {
     const available = 20 - this.data.images.length;
     if (available <= 0) return wx.showToast({ title: '最多选择20张', icon: 'none' });
+    if (this._choosingImages) return;
+    this._choosingImages = true;
     try {
+      const user = await ensureLogin();
+      if (!user) return;
       const result = await wx.chooseMedia({ count: available, mediaType: ['image'], sourceType: ['album', 'camera'], sizeType: ['compressed'] });
       if (!result.tempFiles.length) return;
       wx.showLoading({ title: '图片审核中', mask: true });
@@ -78,7 +84,7 @@ Page({
       if (rejected) wx.showModal({ title: '部分图片未通过审核', content: `${rejected} 张图片被微信内容安全接口判定为需复审或存在风险，未加入列表。`, showCancel: false });
     } catch (error) {
       if (!String(error.errMsg || error.message).includes('cancel')) wx.showModal({ title: '审核服务暂时不可用', content: '图片没有被判定为违规。本次是审核接口超时或网络异常，请稍后重试。', showCancel: false });
-    } finally { wx.hideLoading(); }
+    } finally { wx.hideLoading(); this._choosingImages = false; }
   },
   cleanupCloudFiles(items) {
     const fileList = items.map(item => item.auditFileID).filter(Boolean);
@@ -141,6 +147,11 @@ Page({
   },
   async generateGif() {
     if (this.data.images.length < 2 || this.data.generating) return;
+    if (this._generatingGif) return;
+    this._generatingGif = true;
+    let user;
+    try { user = await ensureLogin(); } catch (_) { this._generatingGif = false; return; }
+    if (!user) { this._generatingGif = false; return; }
     this.setData({ generating: true, generatingText: '正在准备图片…' }); wx.showLoading({ title: '准备图片 0%', mask: true });
     let frameIDs = [];
     try {
@@ -178,15 +189,22 @@ Page({
       wx.showModal({ title: `${error.stage || '生成'}失败${error.code ? `（${error.code}）` : ''}`, content: friendly.slice(0, 500), showCancel: false, confirmText: '知道了' });
     } finally {
       if (frameIDs.length) wx.cloud.deleteFile({ fileList: frameIDs }).catch(() => {});
-      wx.hideLoading(); this.setData({ generating: false, generatingText: '' });
+      wx.hideLoading(); this.setData({ generating: false, generatingText: '' }); this._generatingGif = false;
     }
   },
   closeResult() { this.setData({ resultVisible: false }); },
-  saveGeneratedGif() {
+  async saveGeneratedGif() {
     if (!this.data.generatedGif) return;
-    wx.saveImageToPhotosAlbum({ filePath: this.data.generatedGif, success: () => wx.showToast({ title: '已保存到相册', icon: 'success' }), fail: error => {
-      if (String(error.errMsg).includes('auth deny')) wx.showModal({ title: '需要相册权限', content: '请在设置中允许保存图片到相册', success: r => r.confirm && wx.openSetting() });
-      else wx.showToast({ title: '保存失败', icon: 'none' });
-    }});
+    if (this._savingGif) return;
+    this._savingGif = true;
+    try {
+      const user = await ensureLogin();
+      if (!user) return;
+      await new Promise(resolve => wx.saveImageToPhotosAlbum({ filePath: this.data.generatedGif, success: () => { wx.showToast({ title: '已保存到相册', icon: 'success' }); resolve(); }, fail: error => {
+        if (String(error.errMsg).includes('auth deny')) wx.showModal({ title: '需要相册权限', content: '请在设置中允许保存图片到相册', success: r => r.confirm && wx.openSetting() });
+        else wx.showToast({ title: '保存失败', icon: 'none' });
+        resolve();
+      }}));
+    } finally { this._savingGif = false; }
   }
 });

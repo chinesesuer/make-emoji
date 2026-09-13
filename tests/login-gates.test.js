@@ -12,7 +12,7 @@ function loadPage(relativePath, ensureLogin) {
   vm.runInNewContext(source, {
     Page(value) { definition = value; },
     require(request) {
-      if (request === '../../utils/auth') return { ensureLogin };
+      if (request === '../../utils/auth') return typeof ensureLogin === 'function' ? { ensureLogin } : ensureLogin;
       if (request === '../../utils/material-loader') return { splitIntoBatches: () => [], applyTemporaryUrls: value => value };
       throw new Error(`unexpected import: ${request}`);
     },
@@ -22,6 +22,54 @@ function loadPage(relativePath, ensureLogin) {
   });
   return definition;
 }
+
+test('个人中心展示真实登录状态并保护个人功能入口', async () => {
+  const calls = installWx();
+  let cachedUser = null;
+  const loggedInUser = { openid: 'user-1', nickName: '小明', avatarUrl: 'avatar.png' };
+  const profile = loadPage('pages/profile/profile.js', {
+    getCurrentUser: () => cachedUser,
+    ensureLogin: async () => loggedInUser
+  });
+  const context = pageContext(profile, {}, {
+    route: 'pages/profile/profile',
+    getTabBar: () => ({ setData(update) { calls.push(['tabBar', update]); } })
+  });
+
+  context.onShow();
+  assert.equal(context.data.loggedIn, false);
+  assert.equal(context.data.user, null);
+
+  await context.login();
+  assert.deepEqual(context.data.user, loggedInUser);
+  assert.equal(context.data.loggedIn, true);
+
+  cachedUser = loggedInUser;
+  context.refreshUser();
+  await context.openUserFeature({ currentTarget: { dataset: { name: '我的收藏' } } });
+  assert.equal(calls.some(([name, options]) => name === 'toast' && options.title === '我的收藏即将上线'), true);
+
+  const wxml = fs.readFileSync(path.join(root, 'pages/profile/profile.wxml'), 'utf8');
+  assert.match(wxml, /user\.avatarUrl/);
+  assert.match(wxml, /user\.nickName/);
+  assert.match(wxml, /点击登录/);
+  assert.equal((wxml.match(/bindtap="openUserFeature"/g) || []).length, 4);
+  assert.doesNotMatch(wxml, /用户27674544|UID:\s*27674544/);
+});
+
+test('个人中心登录取消时不打开个人功能', async () => {
+  const calls = installWx();
+  const profile = loadPage('pages/profile/profile.js', {
+    getCurrentUser: () => null,
+    ensureLogin: async () => null
+  });
+  const context = pageContext(profile, {});
+
+  await context.openUserFeature({ currentTarget: { dataset: { name: '我的制作' } } });
+
+  assert.equal(context.data.loggedIn, false);
+  assert.equal(calls.some(([name]) => name === 'toast'), false);
+});
 
 function pageContext(definition, data, extra = {}) {
   const updates = [];

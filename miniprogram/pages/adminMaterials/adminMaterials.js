@@ -1,10 +1,25 @@
 const sceneLabels = { body: '选身体', face: '选表情', accessory: '选挂件' };
+
+function groupByCategory(list) {
+  const groups = [];
+  const indexes = Object.create(null);
+  (list || []).forEach(material => {
+    const categoryName = String(material.categoryName || '未分类').trim() || '未分类';
+    if (indexes[categoryName] === undefined) {
+      indexes[categoryName] = groups.length;
+      groups.push({ categoryName, items: [] });
+    }
+    groups[indexes[categoryName]].items.push(material);
+  });
+  return groups;
+}
+
 Page({
-  data: { scene: 'body', scenes: [{ key: 'body', label: '选身体' }, { key: 'face', label: '选表情' }, { key: 'accessory', label: '选挂件' }], list: [], showUpload: false, uploading: false, categoryName: '', sort: 100, selectedFiles: [], adminName: '' },
+  data: { scene: 'body', scenes: [{ key: 'body', label: '选身体' }, { key: 'face', label: '选表情' }, { key: 'accessory', label: '选挂件' }], list: [], groups: [], showUpload: false, uploading: false, categoryName: '', sort: 100, selectedFiles: [], adminName: '' },
   onShow() { if (!wx.getStorageSync('adminToken')) return wx.redirectTo({ url: '/pages/adminLogin/adminLogin' }); this.setData({ adminName: wx.getStorageSync('adminName') || '管理员' }); this.loadList(); },
   async call(data) { const { result } = await wx.cloud.callFunction({ name: 'materialAdmin', data: { ...data, token: wx.getStorageSync('adminToken') } }); if (!result.success && result.message === '登录已过期') { wx.removeStorageSync('adminToken'); wx.redirectTo({ url: '/pages/adminLogin/adminLogin' }); } return result; },
-  async loadList() { wx.showLoading({ title: '加载中' }); try { const result = await this.call({ action: 'list', scene: this.data.scene }); if (result.success) this.setData({ list: result.list }); } catch (_) { wx.showToast({ title: '素材加载失败', icon: 'none' }); } finally { wx.hideLoading(); } },
-  switchScene(e) { this.setData({ scene: e.currentTarget.dataset.scene }); this.loadList(); },
+  async loadList() { wx.showLoading({ title: '加载中' }); try { const result = await this.call({ action: 'list', scene: this.data.scene }); if (result.success) { const list = result.list || []; this.setData({ list, groups: groupByCategory(list) }); } } catch (_) { wx.showToast({ title: '素材加载失败', icon: 'none' }); } finally { wx.hideLoading(); } },
+  switchScene(e) { this.setData({ scene: e.currentTarget.dataset.scene, list: [], groups: [] }); this.loadList(); },
   openUpload() { this.setData({ showUpload: true, categoryName: '', sort: 100, selectedFiles: [] }); }, closeUpload() { this.setData({ showUpload: false }); },
   input(e) { this.setData({ [e.currentTarget.dataset.field]: e.detail.value }); },
   chooseImage() {

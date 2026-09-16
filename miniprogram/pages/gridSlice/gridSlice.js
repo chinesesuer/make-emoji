@@ -32,7 +32,6 @@ const GRIDS = [
 
 const GAP = 6;
 const EXPORT_TILE = 600;
-const { ensureLogin } = require('../../utils/auth');
 
 Page({
   data: {
@@ -87,9 +86,6 @@ Page({
   async chooseImage() {
     if (this._choosingImage) return;
     this._choosingImage = true;
-    let user;
-    try { user = await ensureLogin(); } catch (_) { this._choosingImage = false; return; }
-    if (!user) { this._choosingImage = false; return; }
     try { wx.chooseMedia({
       count: 1,
       mediaType: ['image'],
@@ -318,9 +314,6 @@ Page({
     }
     if (this.data.generating || this._generatingTiles) return;
     this._generatingTiles = true;
-    let user;
-    try { user = await ensureLogin(); } catch (_) { this._generatingTiles = false; return; }
-    if (!user) { this._generatingTiles = false; return; }
     this.setData({ generating: true });
     wx.showLoading({ title: '正在切图' });
     try {
@@ -352,9 +345,6 @@ Page({
     if (!this.data.tiles.length || this.data.saving) return;
     if (this._savingTiles) return;
     this._savingTiles = true;
-    let user;
-    try { user = await ensureLogin(); } catch (_) { this._savingTiles = false; return; }
-    if (!user) { this._savingTiles = false; return; }
     this.setData({ saving: true }); wx.showLoading({ title: `保存 0/${this.data.tiles.length}` });
     try {
       for (let i = 0; i < this.data.tiles.length; i += 1) {

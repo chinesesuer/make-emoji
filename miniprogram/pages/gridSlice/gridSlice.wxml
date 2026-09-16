@@ -36,7 +36,6 @@
   </scroll-view>
 
   <view class="actions"><button class="pill choose" bindtap="chooseImage">▧　选择图片</button><button class="pill save" loading="{{generating}}" bindtap="generateTiles">⇩　保存图片</button></view>
-  <view class="tabbar"><view class="tab" bindtap="goCreate">◆<text>制作表情</text></view><view class="tab" bindtap="goGifTools">GIF<text>GIF工具</text></view><view class="tab">☻<text>表情仓库</text></view><view class="tab active" bindtap="goMoreTools">▦<text>更多工具</text></view><view class="tab" bindtap="goProfile">♟<text>个人中心</text></view></view>
 
   <view wx:if="{{drawerVisible}}" class="mask" bindtap="closeDrawer"><view class="drawer" catchtap="stopTap"><view class="drawer-head"><text>点击下方图片更换模板</text><view class="close" bindtap="closeDrawer">×</view></view><scroll-view class="drawer-scroll" scroll-y><view class="template-grid"><view wx:for="{{allShapes}}" wx:key="id" class="template {{shape === item.id ? 'active' : ''}}" data-id="{{item.id}}" bindtap="selectShape"><view class="template-icon"><image wx:if="{{item.mask}}" src="{{item.mask}}" mode="aspectFit"/><text wx:else>{{item.icon}}</text></view><text>{{item.name}}</text></view></view></scroll-view></view></view>
 

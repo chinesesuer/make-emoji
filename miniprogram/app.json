@@ -10,6 +10,7 @@
     "pages/emojiMixer/emojiMixer",
     "pages/diyEmoji/diyEmoji",
     "pages/gridSlice/gridSlice",
+    "pages/watermark/watermark",
     "pages/profile/profile",
     "pages/myCreations/myCreations",
     "pages/adminLogin/adminLogin",

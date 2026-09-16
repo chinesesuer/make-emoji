@@ -12,6 +12,9 @@ Page({
   openGridSlice() {
     wx.navigateTo({ url: '/pages/gridSlice/gridSlice' });
   },
+  openWatermark() {
+    wx.navigateTo({ url: '/pages/watermark/watermark' });
+  },
   openTool(e) {
     const routes = {
       '表情包搜索': '',

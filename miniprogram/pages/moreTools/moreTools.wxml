@@ -25,6 +25,7 @@
         <view class="tool" data-name="格式转换" bindtap="openTool"><view class="tool-icon cyan">↔</view><text>格式转换</text></view>
         <view class="tool" data-name="一键抠图" bindtap="openTool"><view class="tool-icon violet">✦</view><text>一键抠图</text></view>
         <view class="tool" bindtap="openGridSlice"><view class="tool-icon orange">▦</view><text>九宫格切图</text></view>
+        <view class="tool" bindtap="openWatermark"><view class="tool-icon watermark">▣</view><text>图片加水印</text></view>
       </view>
     </view>
 

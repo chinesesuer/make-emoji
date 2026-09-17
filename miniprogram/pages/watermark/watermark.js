@@ -1,3 +1,6 @@
+const { ensureLogin } = require('../../utils/auth');
+const { consumeUsage } = require('../../utils/usage-quota');
+
 const COLORS = [
   { id: 'black', value: '#000000' }, { id: 'gray', value: '#616266' },
   { id: 'lightGray', value: '#c1c4cb', light: true }, { id: 'white', value: '#ffffff', light: true },
@@ -91,7 +94,11 @@ Page({
   touchEnd() { this.drag = null; },
   async saveImage() {
     if (!this.data.imagePath || this.data.saving || this.exporting) return;
-    this.exporting = true; this.setData({ saving: true }); wx.showLoading({ title: '正在生成图片', mask: true });
+    this.exporting = true;
+    const user = await ensureLogin();
+    if (!user) { this.exporting = false; return; }
+    if (!consumeUsage(user)) { this.exporting = false; return; }
+    this.setData({ saving: true }); wx.showLoading({ title: '正在生成图片', mask: true });
     try {
       const canvas = await this.getCanvas('#exportCanvas'); const c = this.composition; const maxSide = 4096; const factor = Math.min(1, maxSide / Math.max(c.width, c.height));
       canvas.width = Math.max(1, Math.round(c.width * factor)); canvas.height = Math.max(1, Math.round(c.height * factor)); await this.paint(canvas, canvas.width, canvas.height, factor);

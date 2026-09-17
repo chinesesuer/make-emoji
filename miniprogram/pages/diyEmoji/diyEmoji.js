@@ -28,6 +28,7 @@ const CATEGORIES = ['脸型','眼睛','异瞳','嘴巴','装饰'];
 const HINTS = ['好的emoji表情从选择一个脸型开始','眼睛是心灵的窗户','异色双瞳，一眼万年的灵魂','笑口常开','装饰当然是越多越好'];
 const DEFAULT_STATE = { face: 0, eyes: 1, pupil: 0, mouth: 0, decorations: [] };
 const { ensureLogin } = require('../../utils/auth');
+const { consumeUsage } = require('../../utils/usage-quota');
 
 Page({
   data: {
@@ -208,6 +209,7 @@ Page({
     let user;
     try { user = await ensureLogin(); } catch (_) { this._savingDiy = false; return; }
     if (!user) { this._savingDiy = false; return; }
+    if (!consumeUsage(user)) { this._savingDiy = false; return; }
     this.setData({ saving: true });
     wx.showLoading({ title: '正在保存' });
     try {

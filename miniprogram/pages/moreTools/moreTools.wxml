@@ -21,20 +21,9 @@
     <view class="card">
       <view class="card-title"><text class="section-icon purple">▣</text>图片处理</view>
       <view class="grid">
-        <view class="tool" data-name="图片压缩" bindtap="openTool"><view class="tool-icon green">↙</view><text>图片压缩</text></view>
-        <view class="tool" data-name="格式转换" bindtap="openTool"><view class="tool-icon cyan">↔</view><text>格式转换</text></view>
         <view class="tool" data-name="一键抠图" bindtap="openTool"><view class="tool-icon violet">✦</view><text>一键抠图</text></view>
         <view class="tool" bindtap="openGridSlice"><view class="tool-icon orange">▦</view><text>九宫格切图</text></view>
         <view class="tool" bindtap="openWatermark"><view class="tool-icon watermark">▣</view><text>图片加水印</text></view>
-      </view>
-    </view>
-
-    <view class="card">
-      <view class="card-title"><text class="section-icon pink">T</text>文字玩法</view>
-      <view class="grid">
-        <view class="tool" data-name="花字生成" bindtap="openTool"><view class="tool-icon pink-bg">☆</view><text>花字生成</text></view>
-        <view class="tool" data-name="文字生图" bindtap="openTool"><view class="tool-icon indigo">▧</view><text>文字生图</text></view>
-        <view class="tool" data-name="竖排文字" bindtap="openTool"><view class="tool-icon teal">↕</view><text>竖排文字</text></view>
       </view>
     </view>
 

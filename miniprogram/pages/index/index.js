@@ -1,5 +1,6 @@
 const { splitIntoBatches, applyTemporaryUrls } = require('../../utils/material-loader');
 const { ensureLogin } = require('../../utils/auth');
+const { consumeUsage } = require('../../utils/usage-quota');
 const { buildCreationFingerprint } = require('../../utils/creation-fingerprint');
 
 // 返回首页或从其它页面回退时复用已获得的素材地址，避免重复走云端请求。
@@ -316,6 +317,7 @@ Page({
     try {
       const user = await ensureLogin();
       if (!user) return;
+      if (!consumeUsage(user)) return;
       this.setData({ generating: true });
       wx.showLoading({ title: '生成中' });
       const renderSizeMap = { bad: 240, compressed: 360, lossless: 480 };

@@ -2,6 +2,7 @@ const POOL = ['😀','😂','😍','🥰','😎','🤔','😴','🤯','🥳','�
 const DATES = ['20201001', '20210831', '20220506', '20230221'];
 const BASE_URL = 'https://www.gstatic.com/android/keyboard/emojikitchen/';
 const { ensureLogin } = require('../../utils/auth');
+const { consumeUsage } = require('../../utils/usage-quota');
 
 function codePoints(emoji) {
   return Array.from(emoji).map(char => `u${char.codePointAt(0).toString(16).toLowerCase()}`).join('-');
@@ -142,6 +143,7 @@ Page({
     let user;
     try { user = await ensureLogin(); } catch (_) { this._savingEmoji = false; return; }
     if (!user) { this._savingEmoji = false; return; }
+    if (!consumeUsage(user)) { this._savingEmoji = false; return; }
     this.setData({ saving: true });
     wx.showLoading({ title: '正在保存' });
     try {

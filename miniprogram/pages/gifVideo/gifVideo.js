@@ -1,4 +1,5 @@
 const { ensureLogin } = require('../../utils/auth');
+const { consumeUsage } = require('../../utils/usage-quota');
 
 Page({
   data: {
@@ -167,6 +168,7 @@ Page({
     try {
       const user = await ensureLogin();
       if (!user) return;
+      if (!consumeUsage(user)) return;
       this.setData({ converting: true });
       wx.showLoading({ title: '正在转换GIF', mask: true });
       const resolutionMap = [240, 320, 480, 0];

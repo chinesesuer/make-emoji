@@ -1,4 +1,5 @@
 const { ensureLogin } = require('../../utils/auth');
+const { consumeUsage } = require('../../utils/usage-quota');
 
 Page({
   data: {
@@ -82,6 +83,7 @@ Page({
     let user;
     try { user = await ensureLogin(); } catch (_) { this._generatingGifText = false; return; }
     if (!user) { this._generatingGifText = false; return; }
+    if (!consumeUsage(user)) { this._generatingGifText = false; return; }
     this.setData({ generating: true }); let overlayID = '';
     try { wx.showLoading({ title: '正在处理', mask: true }); const overlay = await this.createOverlay(); const up = await wx.cloud.uploadFile({ cloudPath: `gif-text-overlays/${Date.now()}.png`, filePath: overlay }); overlayID = up.fileID;
       const r = await wx.cloud.callFunction({ name: 'gifImages', data: { action: 'generateGifText', fileID: this.data.auditFileID, overlayFileID: overlayID } }); if (!r.result || !r.result.success) throw new Error((r.result && r.result.message) || '处理失败');

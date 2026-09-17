@@ -1,4 +1,5 @@
 const { ensureLogin } = require('../../utils/auth');
+const { consumeUsage } = require('../../utils/usage-quota');
 
 Page({
   data: {
@@ -153,6 +154,7 @@ Page({
     let user;
     try { user = await ensureLogin(); } catch (_) { this._generatingGif = false; return; }
     if (!user) { this._generatingGif = false; return; }
+    if (!consumeUsage(user)) { this._generatingGif = false; return; }
     this.setData({ generating: true, generatingText: '正在准备图片…' }); wx.showLoading({ title: '准备图片 0%', mask: true });
     let frameIDs = [];
     try {
